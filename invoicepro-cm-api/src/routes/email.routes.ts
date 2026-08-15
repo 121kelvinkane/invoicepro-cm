@@ -1,4 +1,4 @@
-import { Router } from "express";
+﻿import { Router } from "express";
 import { prisma } from "../lib/prisma";
 import { AuthRequest, requireAuth } from "../middleware/auth";
 import { sendInvoiceEmail } from "../utils/email";
@@ -35,7 +35,7 @@ router.post(
         });
       }
 
-      if (invoice.status === "PAID" || invoice.status === "VOID") {
+      if (invoice.status === "VOID") {
         return res.status(400).json({
           message: "This invoice cannot be sent",
         });

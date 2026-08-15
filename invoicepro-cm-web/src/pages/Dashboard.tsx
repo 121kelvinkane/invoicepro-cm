@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { api, formatFCFA } from "../lib/api";
 import Layout from "../components/Layout";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { TrendingUp, CreditCard, AlertTriangle, Plus, ArrowUpRight } from "lucide-react";
 
 export default function Dashboard() {
   const [invoices, setInvoices] = useState<any[]>([]);
@@ -15,14 +16,11 @@ export default function Dashboard() {
       .finally(() => setLoading(false));
   }, []);
 
-  const paidInvoices = invoices.filter((invoice) => invoice.status === "PAID");
-  const revenue = paidInvoices.reduce((sum, invoice) => sum + Number(invoice.total || 0), 0);
-  const unpaidAmount = invoices
-    .filter((invoice) => ["SENT", "OVERDUE", "DRAFT"].includes(invoice.status))
-    .reduce((sum, invoice) => sum + Number(invoice.balanceDue || 0), 0);
-  const overdueCount = invoices.filter((invoice) => invoice.status === "OVERDUE").length;
+  const paidInvoices = invoices.filter((i) => i.status === "PAID");
+  const revenue = paidInvoices.reduce((sum, i) => sum + Number(i.total || 0), 0);
+  const unpaidAmount = invoices.filter((i) => ["SENT", "OVERDUE", "DRAFT"].includes(i.status)).reduce((sum, i) => sum + Number(i.balanceDue || 0), 0);
+  const overdueCount = invoices.filter((i) => i.status === "OVERDUE").length;
 
-  // Calculate monthly revenue for the last 6 months
   const monthlyRevenue: { [key: string]: number } = {};
   const now = new Date();
   for (let i = 5; i >= 0; i--) {
@@ -30,94 +28,135 @@ export default function Dashboard() {
     const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
     monthlyRevenue[key] = 0;
   }
-
   paidInvoices.forEach((inv) => {
     const d = new Date(inv.paidAt || inv.issueDate);
     const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-    if (monthlyRevenue.hasOwnProperty(key)) {
-      monthlyRevenue[key] += Number(inv.total || 0);
-    }
+    if (monthlyRevenue.hasOwnProperty(key)) monthlyRevenue[key] += Number(inv.total || 0);
   });
-
   const chartData = Object.keys(monthlyRevenue).map((key) => {
     const [year, month] = key.split("-");
     const monthName = new Date(Number(year), Number(month) - 1).toLocaleString("default", { month: "short" });
-    return { month: `${monthName} ${year.slice(2)}`, revenue: monthlyRevenue[key] };
+    return { month: monthName, revenue: monthlyRevenue[key] };
   });
+
+  const stats = [
+    { label: "Total Revenue", value: formatFCFA(revenue), icon: TrendingUp, bg: "bg-emerald-50", text: "text-emerald-600" },
+    { label: "Unpaid Amount", value: formatFCFA(unpaidAmount), icon: CreditCard, bg: "bg-blue-50", text: "text-blue-600" },
+    { label: "Overdue Invoices", value: overdueCount, icon: AlertTriangle, bg: "bg-red-50", text: "text-red-600" },
+  ];
 
   return (
     <Layout>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Dashboard</h1>
-        <Link to="/invoices/new" className="bg-blue-600 text-white px-4 py-2 rounded-lg">Create Invoice</Link>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <div className="bg-white border border-gray-200 rounded-xl p-4">
-          <div className="text-sm text-gray-500">Total Revenue</div>
-          <div className="text-2xl font-bold mt-1">{formatFCFA(revenue)}</div>
-        </div>
-        <div className="bg-white border border-gray-200 rounded-xl p-4">
-          <div className="text-sm text-gray-500">Unpaid Amount</div>
-          <div className="text-2xl font-bold mt-1">{formatFCFA(unpaidAmount)}</div>
-        </div>
-        <div className="bg-white border border-gray-200 rounded-xl p-4">
-          <div className="text-sm text-gray-500">Overdue Invoices</div>
-          <div className="text-2xl font-bold mt-1">{overdueCount}</div>
-        </div>
-      </div>
-
-      <div className="bg-white border border-gray-200 rounded-xl p-4 mb-8 shadow-sm">
-        <h2 className="font-semibold mb-4">Revenue (Last 6 Months)</h2>
-        <div className="h-64">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
-              <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-              <YAxis tick={{ fontSize: 12 }} />
-              <Tooltip formatter={(value) => formatFCFA(Number(value))} />
-              <Bar dataKey="revenue" fill="#2563eb" radius={[4, 4, 0, 0]} barSize={40} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
-        <div className="px-4 py-3 border-b border-gray-200 font-semibold">Recent Invoices</div>
-        {loading ? (
-          <div className="p-4 text-gray-500">Loading invoices...</div>
-        ) : invoices.length === 0 ? (
-          <div className="p-4 text-gray-500">No invoices yet. Create your first invoice.</div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-gray-50 text-left">
-                  <th className="px-4 py-3">Invoice</th>
-                  <th className="px-4 py-3">Customer</th>
-                  <th className="px-4 py-3">Due Date</th>
-                  <th className="px-4 py-3">Amount</th>
-                  <th className="px-4 py-3">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {invoices.slice(0, 10).map((invoice) => (
-                  <tr key={invoice.id} className="border-t border-gray-100">
-                    <td className="px-4 py-3">
-                      <Link className="text-blue-600 hover:underline" to={`/invoices/${invoice.id}`}>
-                        {invoice.invoiceNumber}
-                      </Link>
-                    </td>
-                    <td className="px-4 py-3">{invoice.customer?.name}</td>
-                    <td className="px-4 py-3">{new Date(invoice.dueDate).toLocaleDateString()}</td>
-                    <td className="px-4 py-3">{formatFCFA(invoice.total)}</td>
-                    <td className="px-4 py-3">{invoice.status}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      <div className="max-w-7xl mx-auto">
+        {/* Header with BIG ADD Button */}
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+            <p className="text-gray-500 mt-1">Welcome back! Here's your business overview.</p>
           </div>
-        )}
+          <Link
+            to="/invoices/new"
+            className="flex items-center px-8 py-4 bg-green-600 hover:bg-green-700 text-white text-lg font-bold rounded-xl shadow-lg transition-all duration-200 hover:shadow-xl hover:scale-105"
+          >
+            <Plus size={24} className="mr-3" />
+            ADD INVOICE
+          </Link>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          {stats.map((stat) => {
+            const Icon = stat.icon;
+            return (
+              <div key={stat.label} className="bg-white rounded-xl border border-gray-200 p-6 shadow-card hover:shadow-card-hover transition-all duration-300">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">{stat.label}</p>
+                    <p className="text-2xl font-bold text-gray-900 mt-1">{stat.value}</p>
+                  </div>
+                  <div className={`w-12 h-12 ${stat.bg} rounded-lg flex items-center justify-center`}>
+                    <Icon className={stat.text} size={24} />
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Revenue Chart */}
+        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-card mb-8">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-lg font-semibold text-gray-900">Revenue Overview</h2>
+            <span className="text-sm text-gray-500">Last 6 Months</span>
+          </div>
+          <div className="h-72">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
+                <XAxis dataKey="month" tick={{ fontSize: 12 }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 12 }} axisLine={false} tickLine={false} />
+                <Tooltip 
+                  formatter={(value) => formatFCFA(Number(value))}
+                  contentStyle={{ borderRadius: '8px', border: '1px solid #e5e7eb', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                />
+                <Bar dataKey="revenue" fill="#8b5cf6" radius={[6, 6, 0, 0]} barSize={40} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Recent Invoices */}
+        <div className="bg-white rounded-xl border border-gray-200 shadow-card overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-gray-900">Recent Invoices</h2>
+            <Link to="/invoices" className="flex items-center text-sm text-primary-600 hover:text-primary-700 font-medium">
+              View all <ArrowUpRight size={14} className="ml-1" />
+            </Link>
+          </div>
+          {loading ? (
+            <div className="p-6 text-gray-500">Loading invoices...</div>
+          ) : invoices.length === 0 ? (
+            <div className="p-6 text-gray-500">No invoices yet. Create your first invoice.</div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-gray-50 text-left">
+                    <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Invoice</th>
+                    <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+                    <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Due Date</th>
+                    <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                    <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {invoices.slice(0, 10).map((invoice) => (
+                    <tr key={invoice.id} className="hover:bg-gray-50 transition-colors duration-150">
+                      <td className="px-6 py-4">
+                        <Link className="text-primary-600 hover:text-primary-700 font-medium" to={`/invoices/${invoice.id}`}>
+                          {invoice.invoiceNumber}
+                        </Link>
+                      </td>
+                      <td className="px-6 py-4 text-gray-900">{invoice.customer?.name}</td>
+                      <td className="px-6 py-4 text-gray-500">{new Date(invoice.dueDate).toLocaleDateString()}</td>
+                      <td className="px-6 py-4 font-medium text-gray-900">{formatFCFA(invoice.total)}</td>
+                      <td className="px-6 py-4">
+                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          invoice.status === 'PAID' ? 'bg-green-100 text-green-700' :
+                          invoice.status === 'OVERDUE' ? 'bg-red-100 text-red-700' :
+                          invoice.status === 'SENT' ? 'bg-blue-100 text-blue-700' :
+                          'bg-gray-100 text-gray-700'
+                        }`}>
+                          {invoice.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </div>
     </Layout>
   );

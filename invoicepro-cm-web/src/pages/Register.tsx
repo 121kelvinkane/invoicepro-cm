@@ -1,38 +1,39 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { api, setToken } from "../lib/api";
+import { FileText, Mail, Lock, User, ArrowRight, Eye, EyeOff } from "lucide-react";
 
 export default function Register() {
+  const navigate = useNavigate();
   const [fullName, setFullName] = useState("");
-  const [businessName, setBusinessName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
 
-  async function submit(e: any) {
+  async function handleSubmit(e: any) {
     e.preventDefault();
+    
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+    
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters");
+      return;
+    }
+
     setLoading(true);
     setError("");
-
     try {
-      await api("/auth/register", {
+      const res = await api("/auth/register", {
         method: "POST",
-        body: JSON.stringify({
-          fullName,
-          businessName,
-          email,
-          password,
-        }),
+        body: JSON.stringify({ fullName, email, password }),
       });
-
-      const login = await api("/auth/login", {
-        method: "POST",
-        body: JSON.stringify({ email, password }),
-      });
-
-      setToken(login.accessToken);
+      setToken(res.token);
       navigate("/dashboard");
     } catch (err: any) {
       setError(err.message);
@@ -42,79 +43,159 @@ export default function Register() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
-      <div className="w-full max-w-md bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
-        <h1 className="text-2xl font-bold mb-1">Create account</h1>
-        <p className="text-gray-600 text-sm mb-6">
-          Start creating professional invoices in Cameroon.
-        </p>
-
-        {error && (
-          <div className="mb-4 rounded-lg bg-red-50 border border-red-200 text-red-700 px-4 py-3 text-sm">
-            {error}
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-primary-900 to-gray-900 flex">
+      {/* Left Side - Branding */}
+      <div className="hidden lg:flex lg:w-1/2 flex-col justify-center items-center p-12">
+        <div className="max-w-md">
+          <div className="flex items-center mb-8">
+            <div className="w-12 h-12 bg-gradient-to-br from-primary-400 to-primary-600 rounded-xl flex items-center justify-center mr-4">
+              <FileText size={24} className="text-white" />
+            </div>
+            <span className="text-2xl font-bold text-white">InvoicePro CM</span>
           </div>
-        )}
-
-        <form onSubmit={submit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">Full Name</label>
-            <input
-              className="w-full border border-gray-300 rounded-lg px-3 py-2"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              required
-            />
+          <h1 className="text-4xl font-bold text-white mb-4">
+            Start getting paid today
+          </h1>
+          <p className="text-gray-300 text-lg mb-8">
+            Join thousands of Cameroonian freelancers and businesses using InvoicePro CM to manage their invoices and payments.
+          </p>
+          <div className="space-y-4">
+            <div className="flex items-center text-gray-300">
+              <div className="w-8 h-8 bg-primary-500/20 rounded-lg flex items-center justify-center mr-3">
+                <span className="text-primary-400">✓</span>
+              </div>
+              Free to get started, no credit card required
+            </div>
+            <div className="flex items-center text-gray-300">
+              <div className="w-8 h-8 bg-primary-500/20 rounded-lg flex items-center justify-center mr-3">
+                <span className="text-primary-400">✓</span>
+              </div>
+              Accept MTN & Orange Money payments
+            </div>
+            <div className="flex items-center text-gray-300">
+              <div className="w-8 h-8 bg-primary-500/20 rounded-lg flex items-center justify-center mr-3">
+                <span className="text-primary-400">✓</span>
+              </div>
+              Professional invoices in seconds
+            </div>
           </div>
+        </div>
+      </div>
 
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              Business Name
-            </label>
-            <input
-              className="w-full border border-gray-300 rounded-lg px-3 py-2"
-              value={businessName}
-              onChange={(e) => setBusinessName(e.target.value)}
-              required
-            />
+      {/* Right Side - Register Form */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
+        <div className="w-full max-w-md">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 animate-slide-up">
+            <div className="text-center mb-8">
+              <div className="lg:hidden flex justify-center mb-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-700 rounded-xl flex items-center justify-center">
+                  <FileText size={24} className="text-white" />
+                </div>
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900">Create your account</h2>
+              <p className="text-gray-500 mt-2">Start invoicing in minutes</p>
+            </div>
+
+            {error && (
+              <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm">
+                {error}
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Full Name</label>
+                <div className="relative">
+                  <User size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="text"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all"
+                    placeholder="John Doe"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
+                <div className="relative">
+                  <Mail size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all"
+                    placeholder="you@example.com"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
+                <div className="relative">
+                  <Lock size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all"
+                    placeholder="••••••••"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Confirm Password</label>
+                <div className="relative">
+                  <Lock size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all"
+                    placeholder="••••••••"
+                    required
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-3.5 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 flex items-center justify-center mt-6"
+              >
+                {loading ? (
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                ) : (
+                  <>
+                    Create Account
+                    <ArrowRight size={18} className="ml-2" />
+                  </>
+                )}
+              </button>
+            </form>
+
+            <div className="mt-8 text-center">
+              <p className="text-gray-500">
+                Already have an account?{" "}
+                <Link to="/login" className="text-primary-600 hover:text-primary-700 font-semibold">
+                  Sign in
+                </Link>
+              </p>
+            </div>
           </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">Email</label>
-            <input
-              className="w-full border border-gray-300 rounded-lg px-3 py-2"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">Password</label>
-            <input
-              className="w-full border border-gray-300 rounded-lg px-3 py-2"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              minLength={8}
-              required
-            />
-          </div>
-
-          <button
-            disabled={loading}
-            className="w-full bg-blue-600 text-white rounded-lg px-4 py-2 disabled:opacity-60"
-          >
-            {loading ? "Creating account..." : "Register"}
-          </button>
-        </form>
-
-        <p className="mt-4 text-sm text-gray-600">
-          Already have an account?{" "}
-          <Link className="text-blue-600 hover:underline" to="/login">
-            Login
-          </Link>
-        </p>
+        </div>
       </div>
     </div>
   );

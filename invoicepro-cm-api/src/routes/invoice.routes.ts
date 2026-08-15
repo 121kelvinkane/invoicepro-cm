@@ -1,4 +1,4 @@
-import { Router } from "express";
+﻿import { Router } from "express";
 import { randomUUID } from "crypto";
 import { prisma } from "../lib/prisma";
 import { AuthRequest, requireAuth } from "../middleware/auth";
@@ -284,7 +284,7 @@ router.put("/:id", async (req: AuthRequest, res) => {
       });
     }
 
-    if (invoice.status === "PAID" || invoice.status === "VOID") {
+    if (invoice.status === "VOID") {
       return res.status(400).json({
         message: "This invoice cannot be edited",
       });
@@ -396,7 +396,7 @@ router.delete("/:id", async (req: AuthRequest, res) => {
       });
     }
 
-    if (invoice.status !== "DRAFT") {
+    if (invoice.status === "VOID") {
       return res.status(400).json({
         message: "Only draft invoices can be deleted",
       });
@@ -435,7 +435,7 @@ router.post("/:id/void", async (req: AuthRequest, res) => {
       });
     }
 
-    if (invoice.status === "PAID" || invoice.status === "VOID") {
+    if (invoice.status === "VOID") {
       return res.status(400).json({
         message: "This invoice cannot be voided",
       });
@@ -481,7 +481,7 @@ router.post("/:id/send", async (req: AuthRequest, res) => {
       });
     }
 
-    if (invoice.status === "PAID" || invoice.status === "VOID") {
+    if (invoice.status === "VOID") {
       return res.status(400).json({
         message: "This invoice cannot be sent",
       });
@@ -534,7 +534,7 @@ router.post("/:id/manual-payment", async (req: AuthRequest, res) => {
       });
     }
 
-    if (invoice.status === "PAID" || invoice.status === "VOID") {
+    if (invoice.status === "VOID") {
       return res.status(400).json({
         message: "This invoice cannot receive payment",
       });
