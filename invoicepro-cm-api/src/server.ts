@@ -1,4 +1,4 @@
-import "dotenv/config";
+﻿import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
@@ -13,7 +13,8 @@ import emailRoutes from "./routes/email.routes";
 const app = express();
 
 app.use(helmet());
-app.use(cors());
+const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+app.use(cors({ origin: frontendUrl, credentials: true }));
 app.use(express.json());
 app.use("/uploads", express.static("uploads"));
 
