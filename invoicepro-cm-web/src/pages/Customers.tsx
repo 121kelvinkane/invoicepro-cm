@@ -1,24 +1,33 @@
 ﻿import { useEffect, useState } from "react";
 import { api } from "../lib/api";
 import Layout from "../components/Layout";
-import { useToast } from "../components/Toast";
 import { Users, Plus, Edit2, Trash2, Mail, Phone, X } from "lucide-react";
+import { CustomerCardSkeleton } from "../components/Skeleton";
+import { useToast } from "../components/Toast";
 
 export default function Customers() {
   const { showToast } = useToast();
   const [customers, setCustomers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<any>(null);
   const [form, setForm] = useState({ name: "", email: "", phone: "", city: "", address: "" });
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   async function loadCustomers() {
-    const res = await api("/customers");
-    setCustomers(res.customers || []);
+    try {
+      setLoading(true);
+      const res = await api("/customers");
+      setCustomers(res.customers || []);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   }
 
-  useEffect(() => { loadCustomers().catch(console.error); }, []);
+  useEffect(() => { loadCustomers(); }, []);
 
   const openModal = (customer?: any) => {
     if (customer) {
@@ -40,7 +49,7 @@ export default function Customers() {
 
   async function handleSubmit(e: any) {
     e.preventDefault();
-    setLoading(true);
+    setSubmitting(true);
     setError("");
     try {
       if (editingCustomer) {
@@ -48,18 +57,21 @@ export default function Customers() {
           method: "PUT",
           body: JSON.stringify(form),
         });
+        showToast("Customer updated successfully!", "success");
       } else {
         await api("/customers", {
           method: "POST",
           body: JSON.stringify(form),
         });
+        showToast("Customer added successfully!", "success");
       }
       await loadCustomers();
       closeModal();
     } catch (err: any) {
       setError(err.message);
+      showToast(err.message, "error");
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   }
 
@@ -67,6 +79,7 @@ export default function Customers() {
     if (!confirm("Are you sure you want to delete this customer?")) return;
     try {
       await api(`/customers/${id}`, { method: "DELETE" });
+      showToast("Customer deleted", "info");
       await loadCustomers();
     } catch (err: any) {
       showToast(err.message, "error");
@@ -91,8 +104,17 @@ export default function Customers() {
           </button>
         </div>
 
-        {/* Customers Grid */}
-        {customers.length === 0 ? (
+        {/* Loading Skeleton */}
+        {loading && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <CustomerCardSkeleton />
+            <CustomerCardSkeleton />
+            <CustomerCardSkeleton />
+          </div>
+        )}
+
+        {/* Empty State */}
+        {!loading && customers.length === 0 && (
           <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
             <Users size={48} className="mx-auto text-gray-300 mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">No customers yet</h3>
@@ -105,7 +127,10 @@ export default function Customers() {
               ADD CUSTOMER
             </button>
           </div>
-        ) : (
+        )}
+
+        {/* Customers Grid */}
+        {!loading && customers.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {customers.map((customer) => (
               <div key={customer.id} className="bg-white rounded-xl border border-gray-200 p-6 shadow-card hover:shadow-card-hover transition-all duration-300">
@@ -224,10 +249,10 @@ export default function Customers() {
                   </button>
                   <button
                     type="submit"
-                    disabled={loading}
+                    disabled={submitting}
                     className="flex-1 px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg disabled:opacity-50 transition-colors"
                   >
-                    {loading ? "Saving..." : editingCustomer ? "UPDATE" : "ADD"}
+                    {submitting ? "Saving..." : editingCustomer ? "UPDATE" : "ADD"}
                   </button>
                 </div>
               </form>

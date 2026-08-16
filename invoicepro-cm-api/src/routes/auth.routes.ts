@@ -1,4 +1,4 @@
-import { Router } from "express";
+﻿import { Router } from "express";
 import { prisma } from "../lib/prisma";
 import { hashPassword, verifyPassword } from "../utils/password";
 import { signAccessToken } from "../utils/jwt";
@@ -58,8 +58,14 @@ router.post("/register", async (req, res) => {
       },
     });
 
+    const token = signAccessToken({
+      sub: user.id,
+      email: user.email,
+    });
+
     return res.status(201).json({
       message: "Registration successful",
+      token,
       user,
     });
   } catch (error) {
@@ -101,14 +107,14 @@ router.post("/login", async (req, res) => {
       });
     }
 
-    const accessToken = signAccessToken({
+    const token = signAccessToken({
       sub: user.id,
       email: user.email,
     });
 
     return res.json({
       message: "Login successful",
-      accessToken,
+      token,
       user: {
         id: user.id,
         fullName: user.fullName,

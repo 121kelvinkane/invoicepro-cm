@@ -1,4 +1,4 @@
-import jwt from "jsonwebtoken";
+﻿import jwt from "jsonwebtoken";
 
 const JWT_SECRET = process.env.JWT_SECRET as string;
 
@@ -18,5 +18,5 @@ export function signAccessToken(payload: AuthTokenPayload): string {
 }
 
 export function verifyAccessToken(token: string): AuthTokenPayload {
-  return jwt.verify(token, JWT_SECRET) as AuthTokenPayload;
+  return jwt.verify(token, process.env.JWT_SECRET) as AuthTokenPayload;
 }

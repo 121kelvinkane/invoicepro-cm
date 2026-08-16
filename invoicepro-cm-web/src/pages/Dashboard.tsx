@@ -2,6 +2,7 @@
 import { Link } from "react-router-dom";
 import { api, formatFCFA } from "../lib/api";
 import Layout from "../components/Layout";
+import { StatCardSkeleton } from "../components/Skeleton";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { TrendingUp, CreditCard, AlertTriangle, Plus, ArrowUpRight } from "lucide-react";
 
@@ -65,7 +66,13 @@ export default function Dashboard() {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          {stats.map((stat) => {
+          {loading ? (
+            <>
+              <StatCardSkeleton />
+              <StatCardSkeleton />
+              <StatCardSkeleton />
+            </>
+          ) : stats.map((stat) => {
             const Icon = stat.icon;
             return (
               <div key={stat.label} className="bg-white rounded-xl border border-gray-200 p-6 shadow-card hover:shadow-card-hover transition-all duration-300">
@@ -114,7 +121,11 @@ export default function Dashboard() {
             </Link>
           </div>
           {loading ? (
-            <div className="p-6 text-gray-500">Loading invoices...</div>
+            <div className="p-6 space-y-3">
+              <div className="animate-pulse h-4 bg-gray-200 rounded w-3/4"></div>
+              <div className="animate-pulse h-4 bg-gray-200 rounded w-1/2"></div>
+              <div className="animate-pulse h-4 bg-gray-200 rounded w-5/6"></div>
+            </div>
           ) : invoices.length === 0 ? (
             <div className="p-6 text-gray-500">No invoices yet. Create your first invoice.</div>
           ) : (

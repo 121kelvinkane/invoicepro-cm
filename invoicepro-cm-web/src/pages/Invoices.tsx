@@ -2,6 +2,7 @@
 import { Link } from "react-router-dom";
 import { api, formatFCFA } from "../lib/api";
 import Layout from "../components/Layout";
+import { TableRowSkeleton } from "../components/Skeleton";
 import { useToast } from "../components/Toast";
 import { FileText, Plus, Eye, Trash2, Search } from "lucide-react";
 
@@ -93,9 +94,25 @@ export default function Invoices() {
 
         {/* Invoices Table */}
         {loading ? (
-          <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto mb-4"></div>
-            <p className="text-gray-500">Loading invoices...</p>
+          <div className="bg-white rounded-xl border border-gray-200 shadow-card overflow-hidden">
+            <table className="w-full">
+              <thead>
+                <tr className="bg-gray-50 text-left">
+                  <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase">Invoice</th>
+                  <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase">Customer</th>
+                  <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase">Due Date</th>
+                  <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase">Amount</th>
+                  <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase">Status</th>
+                  <th className="px-6 py-3"></th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                <TableRowSkeleton />
+                <TableRowSkeleton />
+                <TableRowSkeleton />
+                <TableRowSkeleton />
+              </tbody>
+            </table>
           </div>
         ) : filteredInvoices.length === 0 ? (
           <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">

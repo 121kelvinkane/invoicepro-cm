@@ -6,6 +6,7 @@ import { FileText, Mail, Lock, User, ArrowRight, Eye, EyeOff } from "lucide-reac
 export default function Register() {
   const navigate = useNavigate();
   const [fullName, setFullName] = useState("");
+  const [businessName, setBusinessName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -31,7 +32,12 @@ export default function Register() {
     try {
       const res = await api("/auth/register", {
         method: "POST",
-        body: JSON.stringify({ fullName, email, password }),
+        body: JSON.stringify({ 
+          fullName, 
+          businessName: businessName || fullName + " Business", 
+          email, 
+          password 
+        }),
       });
       setToken(res.token);
       navigate("/dashboard");
@@ -113,6 +119,21 @@ export default function Register() {
                     onChange={(e) => setFullName(e.target.value)}
                     className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all"
                     placeholder="John Doe"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Business Name</label>
+                <div className="relative">
+                  <FileText size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="text"
+                    value={businessName}
+                    onChange={(e) => setBusinessName(e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all"
+                    placeholder="My Awesome Company"
                     required
                   />
                 </div>

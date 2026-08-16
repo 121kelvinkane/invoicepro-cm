@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from "express";
+﻿import { Request, Response, NextFunction } from "express";
 import { verifyAccessToken } from "../utils/jwt";
 
 export interface AuthRequest extends Request {
@@ -27,6 +27,7 @@ export function requireAuth(
     req.userEmail = payload.email;
     return next();
   } catch (error) {
+    console.error("Auth middleware error:", error);
     return res.status(401).json({
       message: "Invalid or expired token",
     });

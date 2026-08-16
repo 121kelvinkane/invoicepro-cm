@@ -5,14 +5,25 @@ import { Upload, Crown, Check, Building2, CreditCard } from "lucide-react";
 
 export default function Settings() {
   const [profile, setProfile] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [msg, setMsg] = useState("");
   const [msgType, setMsgType] = useState<"success" | "error">("success");
 
   async function loadProfile() {
-    const res = await api("/profile");
-    setProfile(res.profile);
+    try {
+      setLoading(true);
+      setError("");
+      const res = await api("/profile");
+      setProfile(res.profile);
+    } catch (err: any) {
+      console.error("Failed to load profile:", err);
+      setError(err.message || "Failed to load settings");
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => { loadProfile(); }, []);
@@ -27,7 +38,8 @@ export default function Settings() {
     formData.append("logo", file);
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:4000/api/v1"}/profile/logo`, {
+      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:4000/api/v1";
+      const res = await fetch(`${apiUrl}/profile/logo`, {
         method: "POST",
         headers: { Authorization: `Bearer ${getToken()}` },
         body: formData,
@@ -55,20 +67,58 @@ export default function Settings() {
     }
   }
 
-  if (!profile) return <Layout><div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div></div></Layout>;
+  if (loading) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (error) {
+    return (
+      <Layout>
+        <div className="max-w-4xl mx-auto">
+          <div className="p-6 bg-red-50 border border-red-200 text-red-700 rounded-xl">
+            <h2 className="text-lg font-bold mb-2">Error Loading Settings</h2>
+            <p>{error}</p>
+            <button
+              onClick={loadProfile}
+              className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <Layout>
+        <div className="max-w-4xl mx-auto">
+          <div className="p-6 bg-yellow-50 border border-yellow-200 text-yellow-700 rounded-xl">
+            <h2 className="text-lg font-bold mb-2">No Profile Found</h2>
+            <p>Please create a business profile first.</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   const isPro = profile.plan === "PRO";
 
   return (
     <Layout>
       <div className="max-w-4xl mx-auto">
-        {/* Header */}
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
           <p className="text-gray-500 mt-1">Manage your business profile and subscription.</p>
         </div>
 
-        {/* Message */}
         {msg && (
           <div className={`mb-6 p-4 rounded-lg ${msgType === "success" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`}>
             {msg}
@@ -90,7 +140,11 @@ export default function Settings() {
 
             {profile.logoUrl && (
               <div className="mb-6 p-4 bg-gray-50 rounded-lg flex items-center justify-center">
-                <img src={`${import.meta.env.VITE_API_URL?.replace('/api/v1', '')}/${profile.logoUrl}`} alt="Logo" className="h-20 object-contain" />
+                <img 
+                  src={`${(import.meta.env.VITE_API_URL || "http://localhost:4000/api/v1").replace('/api/v1', '')}/${profile.logoUrl}`} 
+                  alt="Logo" 
+                  className="h-20 object-contain" 
+                />
               </div>
             )}
 
@@ -144,7 +198,7 @@ export default function Settings() {
                 </li>
                 <li className="flex items-center text-sm text-gray-600">
                   <Check size={14} className="mr-2 text-green-500" />
-                  {isPro ? "Custom business logo" : "Custom business logo"}
+                  Custom business logo
                 </li>
                 <li className="flex items-center text-sm text-gray-600">
                   <Check size={14} className="mr-2 text-green-500" />
@@ -175,7 +229,7 @@ export default function Settings() {
               <input
                 type="text"
                 value={profile.businessName || ""}
-                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all"
+                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg bg-gray-50"
                 readOnly
               />
             </div>
@@ -184,7 +238,7 @@ export default function Settings() {
               <input
                 type="text"
                 value={profile.phone || ""}
-                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all"
+                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg bg-gray-50"
                 readOnly
               />
             </div>
@@ -193,7 +247,7 @@ export default function Settings() {
               <input
                 type="email"
                 value={profile.email || ""}
-                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all"
+                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg bg-gray-50"
                 readOnly
               />
             </div>
@@ -202,12 +256,11 @@ export default function Settings() {
               <input
                 type="text"
                 value={profile.city || ""}
-                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all"
+                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg bg-gray-50"
                 readOnly
               />
             </div>
           </div>
-          <p className="mt-4 text-sm text-gray-500">To edit your business profile, please contact support.</p>
         </div>
       </div>
     </Layout>
