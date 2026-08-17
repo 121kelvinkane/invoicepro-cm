@@ -158,7 +158,7 @@ export default function Invoices() {
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end space-x-2">
                           <Link
-                            to={`/invoices/${invoice.id}`}
+                            to={`/preview/${invoice.id}`}
                             className="p-1.5 text-gray-400 hover:text-primary-600 rounded-lg hover:bg-primary-50 transition-colors"
                           >
                             <Eye size={16} />
@@ -184,3 +184,6 @@ export default function Invoices() {
     </Layout>
   );
 }
+
+
+

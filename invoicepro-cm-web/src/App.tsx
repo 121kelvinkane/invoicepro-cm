@@ -1,3 +1,4 @@
+﻿import InvoicePreview from "./pages/InvoicePreview";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { getToken } from "./lib/api";
 import Login from "./pages/Login";
@@ -31,6 +32,11 @@ export default function App() {
       <Route path="/settings" element={<Private><Settings /></Private>} />
 
       <Route path="/i/:token" element={<PublicInvoice />} />
-    </Routes>
+    <Route path="/invoices/:id" element={<InvoicePreview />} /><Route path="/preview/:id" element={<InvoicePreview />} />
+  </Routes>
   );
 }
+
+
+
+
