@@ -188,7 +188,7 @@ export async function generateInvoicePdf(invoice: any, business: any, customer: 
     // Timestamp
     doc.font("Helvetica").fontSize(7.5).fillColor(C.light);
     doc.text(
-      `Generated on ${new Date().toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "medium" })}`,
+      `Generated on ${new Date().toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" })}`,
       totalsX - 12, currentY - 4, { width: 252, align: "right" }
     );
     currentY += 34;
@@ -243,6 +243,5 @@ export async function generateInvoicePdf(invoice: any, business: any, customer: 
     doc.end();
   });
 }
-
 
 

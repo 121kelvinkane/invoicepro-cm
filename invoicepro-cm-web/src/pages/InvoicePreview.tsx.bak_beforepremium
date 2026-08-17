@@ -1,0 +1,234 @@
+﻿import { useEffect, useState, useRef } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { api } from "../lib/api";
+import { useToast } from "../components/Toast";
+import { ArrowLeft, Printer, MessageCircle, Calendar, Mail } from "lucide-react";
+
+export default function InvoicePreview() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const invoiceRef = useRef<HTMLDivElement>(null);
+  const [invoice, setInvoice] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [downloading, setDownloading] = useState(false);
+  const [emailing, setEmailing] = useState(false);
+  const [business, setBusiness] = useState<any>(null);
+  const { showToast } = useToast();
+
+  useEffect(() => {
+    async function fetchInvoice() {
+      try {
+        const data = await api(`/invoices/${id}`);
+        setInvoice(data.invoice || data.data || data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    if (id) fetchInvoice();
+    api("/business").then(setBusiness).catch(console.error);
+  }, [id]);
+
+  if (loading) return <div className="p-12 text-center text-gray-500">Loading invoice...</div>;
+  if (!invoice) return <div className="p-12 text-center text-red-500">Invoice not found</div>;
+
+  const { customer, lineItems, invoiceNumber, issueDate, dueDate, subtotal, vatAmount, vatRate, amountPaid, balanceDue, total, currency, publicToken, status } = invoice;
+
+  const paymentLink = `${window.location.origin}/pay/${publicToken}`;
+  const whatsappMessage = `Hello ${customer?.name || 'Customer'},%0A%0APlease find your invoice *${invoiceNumber}* for *${currency || 'XAF'} ${(total || 0).toLocaleString()}*.%0A%0AView and pay securely here: ${paymentLink}%0A%0AThank you for your business!`;
+  const whatsappUrl = `https://wa.me/?text=${whatsappMessage}`;
+
+  const money = (amount: number) => `${currency || 'XAF'} ${Number(amount || 0).toLocaleString()}`;
+
+  // Downloads the robust backend PDF (matches this preview design)
+  const handleDownloadPDF = async () => {
+    if (!id || !invoice) return;
+    setDownloading(true);
+    try {
+      const token = localStorage.getItem("token") || localStorage.getItem("invoicepro_token");
+      const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:4000/api/v1";
+      const res = await fetch(`${baseUrl}/invoices/${id}/pdf`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.message || "Failed to download PDF");
+      }
+
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Invoice-${invoice.invoiceNumber}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error: any) {
+      console.error("Error generating PDF", error);
+      showToast(error.message || "Error generating PDF.", "error");
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  const handleEmailPaymentLink = async () => {
+    if (!customer?.email) {
+      showToast("This customer does not have an email address saved!", "error");
+      return;
+    }
+    setEmailing(true);
+    try {
+      await api("/invoices/send-payment-link", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          toEmail: customer.email,
+          paymentLink: paymentLink,
+          invoiceNumber: invoiceNumber,
+          customerName: customer.name,
+          total: total,
+          currency: currency
+        })
+      });
+      showToast("Payment link sent to " + customer.email + " successfully!", "success");
+    } catch (error) {
+      console.error(error);
+      showToast("Failed to send email. Please check backend logs.", "error");
+    } finally {
+      setEmailing(false);
+    }
+  };
+
+  return (
+    <div className="bg-gray-100 min-h-screen">
+      {/* Toolbar */}
+      <div className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-10">
+        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between flex-wrap gap-3">
+          <button onClick={() => navigate(-1)} className="flex items-center text-gray-600 hover:text-primary-600 font-medium transition-colors">
+            <ArrowLeft size={20} className="mr-2" /> Back
+          </button>
+          <div className="flex gap-3 flex-wrap">
+            <button onClick={handleDownloadPDF} disabled={downloading} className="px-4 py-2 bg-gray-900 hover:bg-black text-white rounded-lg flex items-center gap-2 font-medium transition-colors shadow-md disabled:opacity-50">
+              <Printer size={18} /> {downloading ? "Generating..." : "Download PDF"}
+            </button>
+            <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="px-5 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg flex items-center gap-2 shadow-md hover:shadow-lg transition-all font-semibold">
+              <MessageCircle size={18} /> WhatsApp
+            </a>
+            <button onClick={handleEmailPaymentLink} disabled={emailing} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center gap-2 font-medium transition-colors shadow-md disabled:opacity-50">
+              <Mail size={18} /> {emailing ? "Sending..." : "Email Link"}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Invoice preview — matches backend PDF design */}
+      <div className="max-w-4xl mx-auto p-4 my-8">
+        <div ref={invoiceRef} className="bg-white shadow-2xl rounded-xl overflow-hidden p-10 md:p-14">
+
+          {/* Header: business info left, INVOICE right */}
+          <div className="flex justify-between items-start mb-10">
+            <div className="flex items-start gap-4">
+              {business?.logoUrl && (
+                <img src={business.logoUrl} alt="Logo" className="h-14 w-14 object-contain rounded" />
+              )}
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">{business?.name || "InvoicePro CM"}</h2>
+                {business?.phone && <p className="text-sm text-gray-500 mt-0.5">{business.phone}</p>}
+                {business?.email && <p className="text-sm text-gray-500">{business.email}</p>}
+                {business?.address && <p className="text-sm text-gray-500">{business.address}</p>}
+              </div>
+            </div>
+            <div className="text-right">
+              <h1 className="text-3xl font-bold text-gray-900 tracking-wide">INVOICE</h1>
+              <p className="text-sm text-gray-500 mt-1 font-mono">{invoiceNumber}</p>
+              <p className="text-sm text-gray-500">Status: {status}</p>
+            </div>
+          </div>
+
+          {/* Billed To + Dates */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10 pb-6 border-b border-gray-200">
+            <div>
+              <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Billed To</h3>
+              <p className="font-bold text-gray-900 text-lg">{customer?.name || "Walk-in Customer"}</p>
+              {customer?.email && <p className="text-sm text-gray-500">{customer.email}</p>}
+              {customer?.phone && <p className="text-sm text-gray-500">{customer.phone}</p>}
+            </div>
+            <div className="md:text-right">
+              <div className="mb-3">
+                <span className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-1">Issue Date</span>
+                <span className="text-gray-900 font-medium inline-flex items-center gap-1.5"><Calendar size={14}/> {new Date(issueDate).toLocaleDateString()}</span>
+              </div>
+              <div>
+                <span className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-1">Due Date</span>
+                <span className="text-red-600 font-medium inline-flex items-center gap-1.5"><Calendar size={14}/> {new Date(dueDate).toLocaleDateString()}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Line items */}
+          <table className="w-full mb-8">
+            <thead>
+              <tr className="border-b-2 border-gray-200">
+                <th className="text-left py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Description</th>
+                <th className="text-right py-3 text-xs font-bold text-gray-500 uppercase tracking-wider w-16">Qty</th>
+                <th className="text-right py-3 text-xs font-bold text-gray-500 uppercase tracking-wider w-32">Unit Price</th>
+                <th className="text-right py-3 text-xs font-bold text-gray-500 uppercase tracking-wider w-32">Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              {lineItems?.map((item: any) => (
+                <tr key={item.id} className="border-b border-gray-100">
+                  <td className="py-3.5 text-sm text-gray-800">{item.description}</td>
+                  <td className="py-3.5 text-sm text-gray-600 text-right">{item.quantity}</td>
+                  <td className="py-3.5 text-sm text-gray-600 text-right">{money(item.unitPrice)}</td>
+                  <td className="py-3.5 text-sm text-gray-900 font-medium text-right">{money(item.amount)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          {/* Totals */}
+          <div className="flex justify-end mb-4">
+            <div className="w-full max-w-xs text-sm">
+              <div className="flex justify-between py-1.5 text-gray-500">
+                <span>Subtotal</span>
+                <span>{money(subtotal)}</span>
+              </div>
+              {Number(vatAmount || 0) > 0 && (
+                <div className="flex justify-between py-1.5 text-gray-500">
+                  <span>VAT {vatRate ? `${vatRate}%` : ""}</span>
+                  <span>{money(vatAmount)}</span>
+                </div>
+              )}
+              <div className="flex justify-between py-1.5 text-gray-500">
+                <span>Amount Paid</span>
+                <span>{money(amountPaid)}</span>
+              </div>
+              <div className="flex justify-between py-2.5 mt-1.5 text-base font-bold text-gray-900 border-t-2 border-gray-900">
+                <span>Balance Due</span>
+                <span>{money(balanceDue !== undefined && balanceDue !== null ? balanceDue : total)}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Timestamp */}
+          <div className="flex justify-end mb-10">
+            <p className="text-xs text-gray-400">
+              Generated on: {new Date().toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" })}
+            </p>
+          </div>
+
+          {/* Footer */}
+          <div className="border-t border-gray-200 pt-6">
+            <p className="text-xs text-gray-500 break-all">View and pay online: {paymentLink}</p>
+            <p className="text-center text-gray-400 text-xs mt-6">Generated by InvoicePro CM • Professional Invoicing for Cameroon</p>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  );
+}

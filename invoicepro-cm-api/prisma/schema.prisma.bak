@@ -1,4 +1,4 @@
-﻿generator client {
+generator client {
   provider = "prisma-client-js"
 }
 
@@ -35,7 +35,6 @@ model BusinessProfile {
   city            String?
   country         String   @default("CM")
   logoUrl         String?
-  ownerSignatureUrl String?
   taxId           String?
   currency        String   @default("XAF")
   locale          String   @default("en")
@@ -91,8 +90,6 @@ model Invoice {
   paymentLinkUrl String?
   sentAt         DateTime?
   paidAt         DateTime?
-  customerSignature String?
-  customerSignedAt  DateTime?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
@@ -170,4 +167,3 @@ model ActivityLog {
 
   @@index([userId, createdAt])
 }
-

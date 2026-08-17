@@ -1,4 +1,5 @@
-﻿import "dotenv/config";
+﻿import businessRoutes from "./routes/business.routes";
+import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
@@ -34,6 +35,9 @@ app.use("/api/v1", pdfRoutes);
 app.use("/api/v1", emailRoutes);
 
 const PORT = process.env.PORT || 4000;
+
+app.use("/uploads", express.static("uploads"));
+app.use("/api/v1/business", businessRoutes);
 
 app.listen(PORT, () => {
   console.log(`InvoicePro CM API running on port ${PORT}`);

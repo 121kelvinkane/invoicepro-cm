@@ -128,7 +128,53 @@ export default function Settings() {
 
         <BusinessProfileCard />
 
-        <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Logo Upload Card */}
+          <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-card">
+            <div className="flex items-center mb-6">
+              <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center mr-3">
+                <Building2 className="text-primary-600" size={20} />
+              </div>
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900">Business Logo</h2>
+                <p className="text-sm text-gray-500">Upload your company logo for invoices.</p>
+              </div>
+            </div>
+
+            {profile.logoUrl && (
+              <div className="mb-6 p-4 bg-gray-50 rounded-lg flex items-center justify-center">
+                <img 
+                  src={`${(import.meta.env.VITE_API_URL || "http://localhost:4000/api/v1").replace('/api/v1', '')}/${profile.logoUrl}`} 
+                  alt="Logo" 
+                  className="h-20 object-contain" 
+                />
+              </div>
+            )}
+
+            <form onSubmit={handleUpload} className="space-y-4">
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-primary-400 transition-colors">
+                <Upload size={24} className="mx-auto text-gray-400 mb-2" />
+                <p className="text-sm text-gray-500 mb-2">Click to upload or drag and drop</p>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setFile(e.target.files?.[0] || null)}
+                  className="hidden"
+                  id="logo-upload"
+                />
+                <label htmlFor="logo-upload" className="cursor-pointer text-primary-600 hover:text-primary-700 text-sm font-medium">
+                  Browse files
+                </label>
+              </div>
+              <button
+                disabled={uploading || !file}
+                className="w-full px-4 py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-lg disabled:opacity-50 transition-colors"
+              >
+                {uploading ? "Uploading..." : "Upload Logo"}
+              </button>
+            </form>
+          </div>
+
           {/* Subscription Card */}
           <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-card">
             <div className="flex items-center mb-6">

@@ -2,7 +2,7 @@
 import path from "path";
 import fs from "fs";
 
-function money(amount: number) { return `XAF ${Number(amount || 0).toLocaleString()}`; }
+function money(amount: number) { return `FCFA ${Number(amount || 0).toLocaleString()}`; }
 function formatDate(value: any) {
   try { return new Date(value).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }); } catch { return ""; }
 }
@@ -107,17 +107,17 @@ export async function generateInvoicePdf(invoice: any, business: any, customer: 
 
     // ═══ TABLE ═══
     const colDesc = margin;
-    const colQty = margin + 245;
-    const colUnit = margin + 295;
-    const colAmt = rightEdge - 100;
+    const colQty = margin + 275;
+    const colUnit = margin + 335;
+    const colAmt = rightEdge - 95;
 
     const drawTableHeader = (y: number) => {
       doc.roundedRect(margin, y, contentWidth, 26, 5).fill(C.dark);
       doc.fillColor(C.white).font("Helvetica-Bold").fontSize(7.5);
-      doc.text("DESCRIPTION", colDesc + 12, y + 9.5, { width: 230 });
-      doc.text("QTY", colQty, y + 9.5, { width: 45, align: "right" });
-      doc.text("UNIT PRICE", colUnit, y + 9.5, { width: 90, align: "right" });
-      doc.text("AMOUNT", colAmt, y + 9.5, { width: 88, align: "right" });
+      doc.text("DESCRIPTION", colDesc + 12, y + 9.5, { width: 245 });
+      doc.text("QTY", colQty, y + 9.5, { width: 50, align: "right" });
+      doc.text("UNIT PRICE", colUnit, y + 9.5, { width: 95, align: "right" });
+      doc.text("AMOUNT", colAmt, y + 9.5, { width: 83, align: "right" });
       return y + 30;
     };
 
@@ -135,12 +135,12 @@ export async function generateInvoicePdf(invoice: any, business: any, customer: 
       }
       if (idx % 2 === 0) doc.rect(margin, currentY, contentWidth, 24).fill(C.rowAlt);
       doc.font("Helvetica").fontSize(8.5).fillColor(C.text);
-      doc.text(item.description || "", colDesc + 12, currentY + 8, { width: 230, lineBreak: false, ellipsis: true });
-      doc.text(String(item.quantity || 0), colQty, currentY + 8, { width: 45, align: "right" });
+      doc.text(item.description || "", colDesc + 12, currentY + 8, { width: 245, lineBreak: false, ellipsis: true });
+      doc.text(String(item.quantity || 0), colQty, currentY + 8, { width: 50, align: "right" });
       doc.fillColor(C.muted);
-      doc.text(money(item.unitPrice), colUnit, currentY + 8, { width: 90, align: "right" });
+      doc.text(money(item.unitPrice), colUnit, currentY + 8, { width: 95, align: "right" });
       doc.fillColor(C.text).font("Helvetica-Bold");
-      doc.text(money(item.amount), colAmt, currentY + 8, { width: 88, align: "right" });
+      doc.text(money(item.amount), colAmt, currentY + 8, { width: 83, align: "right" });
       currentY += 24;
     });
 
@@ -188,22 +188,22 @@ export async function generateInvoicePdf(invoice: any, business: any, customer: 
     // Timestamp
     doc.font("Helvetica").fontSize(7.5).fillColor(C.light);
     doc.text(
-      `Generated on ${new Date().toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "medium" })}`,
+      `Generated on ${new Date().toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" })}`,
       totalsX - 12, currentY - 4, { width: 252, align: "right" }
     );
     currentY += 34;
 
     // ═══ SIGNATURES ═══
-    const sigY = pageHeight - 118;
-    if (currentY > sigY - 16) {
+    if (currentY > pageHeight - 170) {
       doc.addPage();
       doc.rect(0, 0, pageWidth, 5).fill(C.accent);
+      currentY = 60;
     }
 
     const sigWidth = (contentWidth - 60) / 2;
     const drawSignature = (label: string, signatureData: string | null | undefined, x: number) => {
       doc.font("Helvetica-Bold").fontSize(7).fillColor(C.light);
-      doc.text(label.toUpperCase(), x, sigY);
+      doc.text(label.toUpperCase(), x, currentY);
       if (signatureData) {
         try {
           let imgBuffer: Buffer | null = null;
@@ -213,12 +213,12 @@ export async function generateInvoicePdf(invoice: any, business: any, customer: 
             const p = path.join(process.cwd(), signatureData);
             if (fs.existsSync(p)) imgBuffer = fs.readFileSync(p);
           }
-          if (imgBuffer) doc.image(imgBuffer, x + 8, sigY + 6, { fit: [sigWidth - 16, 34] });
+          if (imgBuffer) doc.image(imgBuffer, x + 8, currentY + 6, { fit: [sigWidth - 16, 34] });
         } catch (err) {
           console.error("Signature load error:", err);
         }
       }
-      const lineY = sigY + 46;
+      const lineY = currentY + 46;
       doc.moveTo(x, lineY).lineTo(x + sigWidth, lineY).strokeColor(C.light).lineWidth(0.8).stroke();
       doc.font("Helvetica").fontSize(7).fillColor(C.light);
       doc.text(label, x, lineY + 5, { width: sigWidth, align: "center" });
@@ -243,6 +243,3 @@ export async function generateInvoicePdf(invoice: any, business: any, customer: 
     doc.end();
   });
 }
-
-
-
