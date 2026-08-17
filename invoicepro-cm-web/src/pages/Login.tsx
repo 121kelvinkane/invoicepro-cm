@@ -1,7 +1,7 @@
 ﻿import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { api, setToken } from "../lib/api";
-import { FileText, Mail, Lock, ArrowRight, Eye, EyeOff } from "lucide-react";
+import { FileText, Mail, Lock, ArrowRight, Eye, EyeOff, CreditCard, WifiOff, User, Check } from "lucide-react";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -11,14 +11,13 @@ export default function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(e: any) {
-    e.preventDefault();
+  async function doLogin(loginEmail: string, loginPassword: string) {
     setLoading(true);
     setError("");
     try {
       const res = await api("/auth/login", {
         method: "POST",
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email: loginEmail, password: loginPassword }),
       });
       setToken(res.token);
       navigate("/dashboard");
@@ -27,6 +26,15 @@ export default function Login() {
     } finally {
       setLoading(false);
     }
+  }
+
+  async function handleSubmit(e: any) {
+    e.preventDefault();
+    await doLogin(email, password);
+  }
+
+  async function handleDemo() {
+    await doLogin("demo@invoicepro.cm", "Demo1234");
   }
 
   return (
@@ -41,29 +49,29 @@ export default function Login() {
             <span className="text-2xl font-bold text-white">InvoicePro CM</span>
           </div>
           <h1 className="text-4xl font-bold text-white mb-4">
-            Invoicing made simple for Cameroon
+            Professional invoicing for Cameroon
           </h1>
           <p className="text-gray-300 text-lg mb-8">
-            Create professional invoices, accept Mobile Money payments, and get paid faster. Built for freelancers and SMEs.
+            Create beautiful invoices, accept Mobile Money payments, and get paid faster. Built specifically for Cameroonian freelancers and businesses.
           </p>
           <div className="space-y-4">
             <div className="flex items-center text-gray-300">
               <div className="w-8 h-8 bg-primary-500/20 rounded-lg flex items-center justify-center mr-3">
-                <span className="text-primary-400">✓</span>
+                <span className="text-primary-400"><Check size={16} /></span>
               </div>
-              MTN Mobile Money & Orange Money payments
+              Accept MTN & Orange Money payments
             </div>
             <div className="flex items-center text-gray-300">
               <div className="w-8 h-8 bg-primary-500/20 rounded-lg flex items-center justify-center mr-3">
-                <span className="text-primary-400">✓</span>
+                <span className="text-primary-400"><Check size={16} /></span>
               </div>
-              Professional PDF invoices in FCFA
+              Generate professional PDF invoices
             </div>
             <div className="flex items-center text-gray-300">
               <div className="w-8 h-8 bg-primary-500/20 rounded-lg flex items-center justify-center mr-3">
-                <span className="text-primary-400">✓</span>
+                <span className="text-primary-400"><Check size={16} /></span>
               </div>
-              Email & WhatsApp delivery
+              Track payments and send reminders
             </div>
           </div>
         </div>
@@ -80,7 +88,7 @@ export default function Login() {
                 </div>
               </div>
               <h2 className="text-2xl font-bold text-gray-900">Welcome back</h2>
-              <p className="text-gray-500 mt-2">Sign in to your account</p>
+              <p className="text-gray-500 mt-2">Sign in to manage your invoices</p>
             </div>
 
             {error && (
@@ -89,7 +97,7 @@ export default function Login() {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
                 <div className="relative">
@@ -101,6 +109,7 @@ export default function Login() {
                     className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all"
                     placeholder="you@example.com"
                     required
+                    autoComplete="off"
                   />
                 </div>
               </div>
@@ -116,6 +125,7 @@ export default function Login() {
                     className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all"
                     placeholder="••••••••"
                     required
+                    autoComplete="new-password"
                   />
                   <button
                     type="button"
@@ -130,7 +140,7 @@ export default function Login() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3.5 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 flex items-center justify-center"
+                className="w-full py-3.5 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 flex items-center justify-center mt-6"
               >
                 {loading ? (
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
@@ -141,13 +151,31 @@ export default function Login() {
                   </>
                 )}
               </button>
+
+              {/* Demo Account Button */}
+              <button
+                type="button"
+                onClick={handleDemo}
+                disabled={loading}
+                className="w-full py-3 mt-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition-all duration-200 flex items-center justify-center"
+              >
+                <User size={18} className="mr-2" />
+                Try Demo Account
+              </button>
             </form>
 
-            <div className="mt-8 text-center">
+            {/* Trust Badges */}
+            <div className="mt-8 flex items-center justify-center gap-4 text-xs text-gray-400 border-t border-gray-100 pt-6">
+              <span className="flex items-center"><Lock size={14} className="mr-1" /> Secure</span>
+              <span className="flex items-center"><CreditCard size={14} className="mr-1" /> MoMo Ready</span>
+              <span className="flex items-center"><WifiOff size={14} className="mr-1" /> Offline Support</span>
+            </div>
+
+            <div className="mt-6 text-center">
               <p className="text-gray-500">
                 Don't have an account?{" "}
                 <Link to="/register" className="text-primary-600 hover:text-primary-700 font-semibold">
-                  Sign up free
+                  Create one
                 </Link>
               </p>
             </div>

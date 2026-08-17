@@ -1,13 +1,170 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
+  
+  relationMode = "prisma"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String    @id @default(uuid())
+  fullName          String
+  email             String    @unique
+  passwordHash      String
+  emailConfirmedAt  DateTime?
+  resetToken        String?
+  resetTokenExpires DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  businessProfile BusinessProfile?
+  customers       Customer[]
+  invoices        Invoice[]
+  payments        Payment[]
+  activityLogs    ActivityLog[]
+}
+
+model BusinessProfile {
+  id              String   @id @default(uuid())
+  userId          String   @unique
+  businessName    String
+  phone           String?
+  email           String?
+  address         String?
+  city            String?
+  country         String   @default("CM")
+  logoUrl         String?
+  taxId           String?
+  currency        String   @default("XAF")
+  locale          String   @default("en")
+  invoiceLanguage String   @default("en")
+  defaultVatRate  Float?   @default(19.25)
+  vatEnabled      Boolean  @default(false)
+  plan            String   @default("FREE")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Customer {
+  id        String   @id @default(uuid())
+  userId    String
+  name      String
+  email     String?
+  phone     String?
+  address   String?
+  city      String?
+  notes     String?
+  locale    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  invoices Invoice[]
+
+  @@index([userId])
+  @@index([userId, name])
+}
+
+model Invoice {
+  id             String   @id @default(uuid())
+  userId         String
+  customerId     String
+  invoiceNumber  String
+  status         String   @default("DRAFT")
+  language       String   @default("en")
+  issueDate      DateTime
+  dueDate        DateTime
+  currency       String   @default("XAF")
+  subtotal       Int
+  vatRate        Float?
+  vatAmount      Int      @default(0)
+  total          Int
+  amountPaid     Int      @default(0)
+  balanceDue     Int
+  notes          String?
+  paymentTerms   String?
+  publicToken    String   @unique
+  paymentLinkUrl String?
+  sentAt         DateTime?
+  paidAt         DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  customer  Customer          @relation(fields: [customerId], references: [id])
+  lineItems InvoiceLineItem[]
+  payments  Payment[]
+
+  @@unique([userId, invoiceNumber])
+  @@index([userId, status])
+  @@index([userId, createdAt])
+}
+
+model InvoiceLineItem {
+  id          String   @id @default(uuid())
+  invoiceId   String
+  description String
+  quantity    Int
+  unitPrice   Int
+  amount      Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+}
+
+model Payment {
+  id                String   @id @default(uuid())
+  invoiceId         String
+  userId            String
+  provider          String?
+  providerReference String?
+  method            String
+  status            String   @default("PENDING")
+  amount            Int
+  currency          String   @default("XAF")
+  isManual          Boolean  @default(false)
+  manualNote        String?
+  manualReference   String?
+  paidAt            DateTime?
+  rawPayload        String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([invoiceId])
+  @@index([userId])
+  @@index([providerReference])
+}
+
+model WebhookEvent {
+  id              String   @id @default(uuid())
+  provider        String
+  eventType       String
+  rawPayload      String
+  signatureValid  Boolean
+  processed       Boolean  @default(false)
+  processingError String?
+  receivedAt      DateTime @default(now())
+  processedAt     DateTime?
+}
+
+model ActivityLog {
+  id         String   @id @default(uuid())
+  userId     String
+  action     String
+  entityType String
+  entityId   String?
+  metadata   String?
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
 }
