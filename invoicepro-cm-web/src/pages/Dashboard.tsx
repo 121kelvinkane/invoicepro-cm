@@ -1,10 +1,10 @@
-﻿import { useEffect, useState } from "react";
+﻿import { useEffect, useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { api, formatFCFA } from "../lib/api";
 import Layout from "../components/Layout";
 import { StatCardSkeleton } from "../components/Skeleton";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { TrendingUp, CreditCard, AlertTriangle, Plus, ArrowUpRight } from "lucide-react";
+import { TrendingUp, CreditCard, AlertTriangle, Plus, ArrowUpRight , AlertCircle, FileText} from "lucide-react";
 
 export default function Dashboard() {
   const [invoices, setInvoices] = useState<any[]>([]);
@@ -46,9 +46,40 @@ export default function Dashboard() {
     { label: "Overdue Invoices", value: overdueCount, icon: AlertTriangle, bg: "bg-red-50", text: "text-red-600" },
   ];
 
+  
   return (
     <Layout>
       <div className="max-w-7xl mx-auto">
+
+      {/* PREMIUM STATS CARDS */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        {/* Total This Month */}
+        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex items-center justify-between hover:shadow-md transition-shadow">
+          <div>
+            <p className="text-sm font-medium text-gray-500">Total This Month</p>
+            <p className="text-2xl font-bold text-gray-900 mt-1">{formatFCFA(stats.monthRevenue)}</p>
+          </div>
+          <div className="p-3 bg-emerald-50 rounded-xl"><TrendingUp className="text-emerald-600" size={24} /></div>
+        </div>
+
+        {/* Unpaid Amount */}
+        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex items-center justify-between hover:shadow-md transition-shadow">
+          <div>
+            <p className="text-sm font-medium text-gray-500">Unpaid Amount</p>
+            <p className="text-2xl font-bold text-gray-900 mt-1">{formatFCFA(stats.unpaidTotal)}</p>
+          </div>
+          <div className="p-3 bg-orange-50 rounded-xl"><AlertCircle className="text-orange-600" size={24} /></div>
+        </div>
+
+        {/* Invoices This Week */}
+        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex items-center justify-between hover:shadow-md transition-shadow">
+          <div>
+            <p className="text-sm font-medium text-gray-500">Invoices This Week</p>
+            <p className="text-2xl font-bold text-gray-900 mt-1">{stats.weekCount}</p>
+          </div>
+          <div className="p-3 bg-blue-50 rounded-xl"><FileText className="text-blue-600" size={24} /></div>
+        </div>
+      </div>
         {/* Header with BIG ADD Button */}
         <div className="flex items-center justify-between mb-8">
           <div>
@@ -74,7 +105,8 @@ export default function Dashboard() {
             </>
           ) : stats.map((stat) => {
             const Icon = stat.icon;
-            return (
+            
+  return (
               <div key={stat.label} className="bg-white rounded-xl border border-gray-200 p-6 shadow-card hover:shadow-card-hover transition-all duration-300">
                 <div className="flex items-center justify-between">
                   <div>
@@ -172,3 +204,8 @@ export default function Dashboard() {
     </Layout>
   );
 }
+
+
+
+
+
