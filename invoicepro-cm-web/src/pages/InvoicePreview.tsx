@@ -35,7 +35,7 @@ export default function InvoicePreview() {
 
   const { customer, lineItems, invoiceNumber, issueDate, dueDate, subtotal, vatAmount, vatRate, amountPaid, balanceDue, total, currency, publicToken, status } = invoice;
 
-  const paymentLink = `${window.location.origin}/pay/${publicToken}`;
+  const paymentLink = `${window.location.origin}/i/${publicToken}`;
   const whatsappMessage = `Hello ${customer?.name || 'Customer'},%0A%0APlease find your invoice *${invoiceNumber}* for *${currency || 'XAF'} ${(total || 0).toLocaleString()}*.%0A%0AView and pay securely here: ${paymentLink}%0A%0AThank you for your business!`;
   const whatsappUrl = `https://wa.me/?text=${whatsappMessage}`;
 
@@ -254,7 +254,7 @@ export default function InvoicePreview() {
             {/* Footer */}
             <div className="mt-10 pt-4 border-t-2 border-emerald-600">
               <div className="flex justify-between items-center gap-4 flex-wrap">
-                <p className="text-xs text-slate-500 break-all">View and pay online: {paymentLink}</p>
+                <p className="text-xs text-slate-500 break-all">View and pay online: <a href={paymentLink || "#"} target="_blank" rel="noopener noreferrer" className="text-emerald-600 hover:underline font-medium">{paymentLink || "MISSING LINK"}</a></p>
                 <p onClick={() => navigate("/login")} title="Go to login" className={`text-xs whitespace-nowrap cursor-pointer hover:underline transition-colors ${business?.plan === "PRO" ? "text-emerald-600 font-medium" : "text-slate-400"}`}>{business?.plan === "PRO" ? "InvoicePro CM — Pro" : "Generated with InvoicePro CM"}</p>
               </div>
             </div>
@@ -264,4 +264,7 @@ export default function InvoicePreview() {
     </div>
   );
 }
+
+
+
 

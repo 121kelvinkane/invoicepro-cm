@@ -21,7 +21,7 @@ const C = {
   red: "#dc2626",
 };
 
-export async function generateInvoicePdf(invoice: any, business: any, customer: any, options: { hidePaymentLink?: boolean } = {}): Promise<Buffer> {
+export async function generateInvoicePdf(invoice: any, business: any, customer: any): Promise<Buffer> {
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({ size: "A4", margin: 0, bufferPages: true });
     const chunks: Buffer[] = [];
@@ -210,15 +210,7 @@ export async function generateInvoicePdf(invoice: any, business: any, customer: 
           if (typeof signatureData === "string" && signatureData.startsWith("data:")) {
             imgBuffer = Buffer.from(signatureData.replace(/^data:image\/\w+;base64,/, ""), "base64");
           } else if (typeof signatureData === "string") {
-            let filePath = signatureData;
-            // If it's a full URL, extract just the path (e.g., /uploads/sig-123.png)
-            if (filePath.startsWith("http")) {
-              try { filePath = new URL(filePath).pathname; } catch {}
-            }
-            // Remove leading slash so path.join works perfectly on Windows
-            if (filePath.startsWith("/")) filePath = filePath.substring(1);
-            
-            const p = path.join(process.cwd(), filePath);
+            const p = path.join(process.cwd(), signatureData);
             if (fs.existsSync(p)) imgBuffer = fs.readFileSync(p);
           }
           if (imgBuffer) doc.image(imgBuffer, x + 8, sigY + 6, { fit: [sigWidth - 16, 34] });
@@ -243,7 +235,7 @@ export async function generateInvoicePdf(invoice: any, business: any, customer: 
       doc.rect(margin, fy - 10, contentWidth, 1).fill(C.accent);
       doc.font("Helvetica").fontSize(7.5).fillColor(C.muted);
       const appUrl = process.env.APP_URL || "http://localhost:3000";
-      if (!options.hidePaymentLink) doc.text(`View and pay online: ${appUrl}/i/${invoice.publicToken}`, margin, fy, { width: contentWidth - 160, lineBreak: false, ellipsis: true });
+      doc.text(`View and pay online: ${appUrl}/i/${invoice.publicToken}`, margin, fy, { width: contentWidth - 160, lineBreak: false, ellipsis: true });
       doc.fillColor(isPro ? C.accent : C.light);
       doc.text(isPro ? "InvoicePro CM — Pro" : "Generated with InvoicePro CM", rightEdge - 155, fy, { width: 155, align: "right", lineBreak: false, link: `${appUrl}/login` });
     }
@@ -251,8 +243,6 @@ export async function generateInvoicePdf(invoice: any, business: any, customer: 
     doc.end();
   });
 }
-
-
 
 
 

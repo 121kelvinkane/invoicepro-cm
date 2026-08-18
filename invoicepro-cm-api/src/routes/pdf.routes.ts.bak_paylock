@@ -1,10 +1,7 @@
-﻿import { Router } from "express";
-import fs from "fs";
-import path from "path";
+import { Router } from "express";
 import { prisma } from "../lib/prisma";
 import { AuthRequest, requireAuth } from "../middleware/auth";
 import { generateInvoicePdf } from "../utils/pdf";
-import { logActivity } from "../utils/logger";
 
 const router = Router();
 
@@ -81,18 +78,10 @@ router.get("/public/invoices/:token/pdf", async (req, res) => {
       });
     }
 
-    // 🔒 LOCK PDF UNTIL PAID
-    if (invoice.status !== "PAID" && Number(invoice.balanceDue) > 0) {
-      return res.status(403).json({
-        message: "PDF download is only available after full payment.",
-      });
-    }
-
     const pdf = await generateInvoicePdf(
       invoice,
       invoice.user.businessProfile,
-      invoice.customer,
-      { hidePaymentLink: true }
+      invoice.customer
     );
 
     res.setHeader("Content-Type", "application/pdf");
@@ -110,41 +99,4 @@ router.get("/public/invoices/:token/pdf", async (req, res) => {
   }
 });
 
-
-// POST /public/invoices/:token/sign - Customer signs the invoice
-router.post("/public/invoices/:token/sign", async (req, res) => {
-  try {
-    const { token } = req.params;
-    const { signature } = req.body; 
-    if (!signature) return res.status(400).json({ message: "No signature provided" });
-
-    const invoice = await prisma.invoice.findUnique({ where: { publicToken: token } });
-    if (!invoice) return res.status(404).json({ message: "Invoice not found" });
-
-    const base64Data = signature.replace(/^data:image\/\w+;base64,/, "");
-    const filename = `cust-sig-${invoice.id}-${Date.now()}.png`;
-    const uploadDir = path.join(__dirname, "../../uploads");
-    if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
-    const filepath = path.join(uploadDir, filename);
-    
-    fs.writeFileSync(filepath, base64Data, "base64");
-
-    await prisma.invoice.update({
-      where: { id: invoice.id },
-      data: {
-        customerSignature: `/uploads/${filename}`,
-        customerSignedAt: new Date()
-      }
-    });
-
-    res.json({ success: true, url: `/uploads/${filename}` });
-  } catch (err) {
-    console.error("SIGN ERROR:", err);
-    res.status(500).json({ message: "Failed to save signature" });
-  }
-});
-
 export default router;
-
-
-

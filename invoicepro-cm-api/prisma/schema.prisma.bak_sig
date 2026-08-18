@@ -1,4 +1,4 @@
-generator client {
+﻿generator client {
   provider = "prisma-client-js"
 }
 
@@ -170,5 +170,4 @@ model ActivityLog {
 
   @@index([userId, createdAt])
 }
-
 

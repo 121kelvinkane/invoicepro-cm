@@ -210,15 +210,7 @@ export async function generateInvoicePdf(invoice: any, business: any, customer: 
           if (typeof signatureData === "string" && signatureData.startsWith("data:")) {
             imgBuffer = Buffer.from(signatureData.replace(/^data:image\/\w+;base64,/, ""), "base64");
           } else if (typeof signatureData === "string") {
-            let filePath = signatureData;
-            // If it's a full URL, extract just the path (e.g., /uploads/sig-123.png)
-            if (filePath.startsWith("http")) {
-              try { filePath = new URL(filePath).pathname; } catch {}
-            }
-            // Remove leading slash so path.join works perfectly on Windows
-            if (filePath.startsWith("/")) filePath = filePath.substring(1);
-            
-            const p = path.join(process.cwd(), filePath);
+            const p = path.join(process.cwd(), signatureData);
             if (fs.existsSync(p)) imgBuffer = fs.readFileSync(p);
           }
           if (imgBuffer) doc.image(imgBuffer, x + 8, sigY + 6, { fit: [sigWidth - 16, 34] });
@@ -251,7 +243,6 @@ export async function generateInvoicePdf(invoice: any, business: any, customer: 
     doc.end();
   });
 }
-
 
 
 

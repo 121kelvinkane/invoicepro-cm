@@ -10,10 +10,11 @@ import invoiceRoutes from "./routes/invoice.routes";
 import publicRoutes from "./routes/public.routes";
 import pdfRoutes from "./routes/pdf.routes";
 import emailRoutes from "./routes/email.routes";
+import activityRoutes from "./routes/activity.routes";
 
 const app = express();
 
-app.use(helmet());
+app.use(helmet({ crossOriginResourcePolicy: false }));
 const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
 app.use(cors({ origin: frontendUrl, credentials: true }));
 app.use(express.json());
@@ -38,7 +39,11 @@ const PORT = process.env.PORT || 4000;
 
 app.use("/uploads", express.static("uploads"));
 app.use("/api/v1/business", businessRoutes);
+app.use("/api/v1/activity", activityRoutes);
 
 app.listen(PORT, () => {
   console.log(`InvoicePro CM API running on port ${PORT}`);
 });
+
+
+

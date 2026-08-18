@@ -1,8 +1,7 @@
-﻿import { useState, useEffect, useRef } from "react";
+﻿import { useState, useEffect } from "react";
 import { api } from "../lib/api";
 import { useToast } from "./Toast";
-import { Upload, Building2, Save, X } from "lucide-react";
-import SignatureCanvas from "react-signature-canvas";
+import { Upload, Building2, Save } from "lucide-react";
 
 export default function BusinessProfileCard() {
   const { showToast } = useToast();
@@ -11,7 +10,6 @@ export default function BusinessProfileCard() {
   });
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const sigRef = useRef<any>(null);
 
   useEffect(() => {
     api("/business")
@@ -55,19 +53,14 @@ export default function BusinessProfileCard() {
     }
   };
 
-  const saveSignature = async () => {
-    if (!sigRef.current || sigRef.current.isEmpty()) {
-      showToast("Please draw your signature first", "error");
-      return;
-    }
+  
+  const handleSignatureUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
     setUploading(true);
+    const formData = new FormData();
+    formData.append("signature", file);
     try {
-      const dataUrl = sigRef.current.toDataURL("image/png");
-      const blob = await (await fetch(dataUrl)).blob();
-      const file = new File([blob], "signature.png", { type: "image/png" });
-      const formData = new FormData();
-      formData.append("signature", file);
-
       const token = localStorage.getItem("token") || localStorage.getItem("invoicepro_token");
       const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:4000/api/v1";
       const res = await fetch(`${baseUrl}/business/signature`, {
@@ -79,10 +72,10 @@ export default function BusinessProfileCard() {
       if (data.url) {
         const fullUrl = `${window.location.origin.replace(":3000", ":4000")}${data.url}`;
         setProfile(prev => ({ ...prev, signatureUrl: fullUrl }));
-        showToast("Signature saved! Click Save Profile to apply.", "success");
+        showToast("Signature uploaded! Click Save to apply.", "success");
       }
     } catch (err) {
-      showToast("Failed to save signature", "error");
+      showToast("Upload failed", "error");
     } finally {
       setUploading(false);
     }
@@ -115,7 +108,6 @@ export default function BusinessProfileCard() {
         </div>
       </div>
 
-      {/* Logo Section */}
       <div className="mb-6 flex items-center gap-6">
         <div className="w-24 h-24 bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl flex items-center justify-center overflow-hidden">
           {profile.logoUrl ? (
@@ -133,47 +125,26 @@ export default function BusinessProfileCard() {
         </div>
       </div>
 
-      {/* Signature Drawing Section */}
+      
       <div className="mb-6 border-t border-gray-100 pt-6">
-        <label className="block text-sm font-medium text-gray-700 mb-2">Your Signature</label>
-        <div className="flex flex-col md:flex-row gap-6 items-start">
-          <div className="flex-1 w-full">
-            <div className="border border-gray-300 rounded-lg overflow-hidden bg-white">
-              <SignatureCanvas
-                ref={sigRef}
-                penColor="black"
-                canvasProps={{ className: "w-full", style: { height: "120px", width: "100%" } }}
-              />
-            </div>
-            <div className="flex gap-2 mt-2">
-              <button
-                type="button"
-                onClick={() => sigRef.current?.clear()}
-                className="px-3 py-1.5 text-xs font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-md flex items-center gap-1"
-              >
-                <X size={12} /> Clear
-              </button>
-              <button
-                type="button"
-                onClick={saveSignature}
-                disabled={uploading}
-                className="px-3 py-1.5 text-xs font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-md disabled:opacity-50"
-              >
-                {uploading ? "Saving..." : "Save Signature"}
-              </button>
-            </div>
-          </div>
-          <div className="w-48 h-32 bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl flex items-center justify-center overflow-hidden">
+        <div className="flex items-center gap-6">
+          <div className="w-48 h-20 bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl flex items-center justify-center overflow-hidden">
             {profile.signatureUrl ? (
-              <img src={profile.signatureUrl} alt="Saved Signature" className="max-w-full max-h-full object-contain p-2" />
+              <img src={profile.signatureUrl} alt="Signature" className="max-w-full max-h-full object-contain" />
             ) : (
-              <span className="text-xs text-gray-400 text-center px-2">Saved signature will appear here</span>
+              <span className="text-xs text-gray-400">No signature</span>
             )}
+          </div>
+          <div>
+            <label className="cursor-pointer px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium transition-colors inline-flex items-center gap-2">
+              <Upload size={16} /> {uploading ? "Uploading..." : "Upload Signature"}
+              <input type="file" accept="image/*" onChange={handleSignatureUpload} className="hidden" />
+            </label>
+            <p className="text-xs text-gray-400 mt-2">Transparent PNG recommended.</p>
           </div>
         </div>
       </div>
 
-      {/* Form Fields */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Business Name</label>
@@ -203,3 +174,6 @@ export default function BusinessProfileCard() {
     </div>
   );
 }
+
+
+
