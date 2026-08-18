@@ -1,4 +1,6 @@
-﻿import InstallPrompt from "./components/InstallPrompt";
+﻿import ResetPassword from "./pages/ResetPassword";
+import ForgotPassword from "./pages/ForgotPassword";
+import InstallPrompt from "./components/InstallPrompt";
 import InvoicePreview from "./pages/InvoicePreview";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { getToken } from "./lib/api";
@@ -25,6 +27,8 @@ export default function App() {
         <Route path="/" element={getToken() ? <Navigate to="/dashboard" /> : <Navigate to="/login" />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
 
         <Route path="/dashboard" element={<Private><Dashboard /></Private>} />
         <Route path="/customers" element={<Private><Customers /></Private>} />
@@ -42,4 +46,5 @@ export default function App() {
     </LanguageProvider>
   );
 }
+
 
