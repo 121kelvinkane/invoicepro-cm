@@ -64,7 +64,7 @@ router.post("/forgot-password", async (req, res) => {
       data: { resetToken, resetTokenExpires }
     });
 
-    const resetUrl = `${process.env.FRONTEND_URL || "http://localhost:3000"}/reset-password?token=${resetToken}`;
+    const resetUrl = `${process.env.FRONTEND_URL || "https://invoicepro-cm.vercel.app"}/reset-password?token=${resetToken}`;
 
     await resend.emails.send({
       from: "InvoicePro CM <onboarding@resend.dev>",
@@ -123,6 +123,7 @@ router.post("/reset-password", async (req, res) => {
 });
 
 export default router;
+
 
 
 
