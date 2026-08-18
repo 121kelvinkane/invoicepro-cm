@@ -1,4 +1,5 @@
-﻿import InvoicePreview from "./pages/InvoicePreview";
+﻿import InstallPrompt from "./components/InstallPrompt";
+import InvoicePreview from "./pages/InvoicePreview";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { getToken } from "./lib/api";
 import { LanguageProvider } from "./context/LanguageContext";
@@ -19,6 +20,7 @@ function Private({ children }: any) {
 export default function App() {
   return (
     <LanguageProvider>
+      <InstallPrompt />
       <Routes>
         <Route path="/" element={getToken() ? <Navigate to="/dashboard" /> : <Navigate to="/login" />} />
         <Route path="/login" element={<Login />} />
@@ -40,3 +42,4 @@ export default function App() {
     </LanguageProvider>
   );
 }
+
