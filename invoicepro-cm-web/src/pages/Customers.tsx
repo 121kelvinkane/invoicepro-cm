@@ -4,9 +4,11 @@ import Layout from "../components/Layout";
 import { Users, Plus, Edit2, Trash2, Mail, Phone, X } from "lucide-react";
 import { CustomerCardSkeleton } from "../components/Skeleton";
 import { useToast } from "../components/Toast";
+import { useLanguage } from "../context/LanguageContext";
 
 export default function Customers() {
   const { showToast } = useToast();
+  const { t } = useLanguage();
   const [customers, setCustomers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -57,13 +59,13 @@ export default function Customers() {
           method: "PUT",
           body: JSON.stringify(form),
         });
-        showToast("Customer updated successfully!", "success");
+        showToast(t("customers.updatedSuccess"), "success");
       } else {
         await api("/customers", {
           method: "POST",
           body: JSON.stringify(form),
         });
-        showToast("Customer added successfully!", "success");
+        showToast(t("customers.addedSuccess"), "success");
       }
       await loadCustomers();
       closeModal();
@@ -76,10 +78,10 @@ export default function Customers() {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm("Are you sure you want to delete this customer?")) return;
+    if (!confirm(t("customers.confirmDelete"))) return;
     try {
       await api(`/customers/${id}`, { method: "DELETE" });
-      showToast("Customer deleted", "info");
+      showToast(t("customers.deletedSuccess"), "info");
       await loadCustomers();
     } catch (err: any) {
       showToast(err.message, "error");
@@ -92,15 +94,15 @@ export default function Customers() {
         {/* Header with BIG ADD Button */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Customers</h1>
-            <p className="text-gray-500 mt-1">Manage your client relationships.</p>
+            <h1 className="text-2xl font-bold text-gray-900">{t("customers.title")}</h1>
+            <p className="text-gray-500 mt-1">{t("customers.subtitle")}</p>
           </div>
           <button
             onClick={() => openModal()}
             className="flex items-center px-8 py-4 bg-green-600 hover:bg-green-700 text-white text-lg font-bold rounded-xl shadow-lg transition-all duration-200 hover:shadow-xl hover:scale-105"
           >
             <Plus size={24} className="mr-3" />
-            ADD CUSTOMER
+            {t("customers.add")}
           </button>
         </div>
 
@@ -117,14 +119,14 @@ export default function Customers() {
         {!loading && customers.length === 0 && (
           <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
             <Users size={48} className="mx-auto text-gray-300 mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No customers yet</h3>
-            <p className="text-gray-500 mb-6">Add your first customer to start creating invoices.</p>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">{t("customers.noCustomers")}</h3>
+            <p className="text-gray-500 mb-6">{t("customers.addFirst")}</p>
             <button
               onClick={() => openModal()}
               className="px-8 py-4 bg-green-600 hover:bg-green-700 text-white text-lg font-bold rounded-xl shadow-lg"
             >
               <Plus size={24} className="inline mr-3" />
-              ADD CUSTOMER
+              {t("customers.add")}
             </button>
           </div>
         )}
@@ -178,7 +180,7 @@ export default function Customers() {
             <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-xl animate-slide-up">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-lg font-bold text-gray-900">
-                  {editingCustomer ? "Edit Customer" : "Add Customer"}
+                  {editingCustomer ? t("customers.editTitle") : t("customers.addTitle")}
                 </h2>
                 <button onClick={closeModal} className="text-gray-400 hover:text-gray-600">
                   <X size={20} />
@@ -191,7 +193,7 @@ export default function Customers() {
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t("customers.name")} *</label>
                   <input
                     type="text"
                     value={form.name}
@@ -201,7 +203,7 @@ export default function Customers() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t("customers.email")}</label>
                   <input
                     type="email"
                     value={form.email}
@@ -210,7 +212,7 @@ export default function Customers() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t("customers.phone")}</label>
                   <input
                     type="tel"
                     value={form.phone}
@@ -221,7 +223,7 @@ export default function Customers() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t("customers.city")}</label>
                     <input
                       type="text"
                       value={form.city}
@@ -230,7 +232,7 @@ export default function Customers() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t("customers.address")}</label>
                     <input
                       type="text"
                       value={form.address}
@@ -245,14 +247,14 @@ export default function Customers() {
                     onClick={closeModal}
                     className="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
                   >
-                    Cancel
+                    {t("common.cancel")}
                   </button>
                   <button
                     type="submit"
                     disabled={submitting}
                     className="flex-1 px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg disabled:opacity-50 transition-colors"
                   >
-                    {submitting ? "Saving..." : editingCustomer ? "UPDATE" : "ADD"}
+                    {submitting ? t("common.saving") : editingCustomer ? t("customers.updateBtn") : t("customers.addBtn")}
                   </button>
                 </div>
               </form>

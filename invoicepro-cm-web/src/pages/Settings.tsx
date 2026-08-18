@@ -2,9 +2,11 @@
 import { useEffect, useState } from "react";
 import { api, getToken } from "../lib/api";
 import Layout from "../components/Layout";
+import { useLanguage } from "../context/LanguageContext";
 import { Upload, Crown, Check, Building2, CreditCard } from "lucide-react";
 
 export default function Settings() {
+  const { t } = useLanguage();
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -83,13 +85,13 @@ export default function Settings() {
       <Layout>
         <div className="max-w-4xl mx-auto">
           <div className="p-6 bg-red-50 border border-red-200 text-red-700 rounded-xl">
-            <h2 className="text-lg font-bold mb-2">Error Loading Settings</h2>
+            <h2 className="text-lg font-bold mb-2">{t("settings.errorTitle")}</h2>
             <p>{error}</p>
             <button
               onClick={loadProfile}
               className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
             >
-              Try Again
+              {t("settings.tryAgain")}
             </button>
           </div>
         </div>
@@ -102,8 +104,8 @@ export default function Settings() {
       <Layout>
         <div className="max-w-4xl mx-auto">
           <div className="p-6 bg-yellow-50 border border-yellow-200 text-yellow-700 rounded-xl">
-            <h2 className="text-lg font-bold mb-2">No Profile Found</h2>
-            <p>Please create a business profile first.</p>
+            <h2 className="text-lg font-bold mb-2">{t("settings.noProfileTitle")}</h2>
+            <p>{t("settings.noProfileText")}</p>
           </div>
         </div>
       </Layout>
@@ -116,8 +118,8 @@ export default function Settings() {
     <Layout>
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
-          <p className="text-gray-500 mt-1">Manage your business profile and subscription.</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t("settings.title")}</h1>
+          <p className="text-gray-500 mt-1">{t("settings.subtitle")}</p>
         </div>
 
         {msg && (
@@ -136,8 +138,8 @@ export default function Settings() {
                 <Crown className={isPro ? "text-yellow-600" : "text-gray-400"} size={20} />
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-gray-900">Subscription Plan</h2>
-                <p className="text-sm text-gray-500">Upgrade to unlock premium features.</p>
+                <h2 className="text-lg font-semibold text-gray-900">{t("settings.subscription")}</h2>
+                <p className="text-sm text-gray-500">{t("settings.upgradeText")}</p>
               </div>
             </div>
 
@@ -145,21 +147,21 @@ export default function Settings() {
               <div className="flex items-center justify-between mb-3">
                 <span className="font-bold text-lg">{isPro ? "PRO ✨" : "FREE"}</span>
                 <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${isPro ? "bg-yellow-100 text-yellow-700" : "bg-gray-100 text-gray-700"}`}>
-                  {isPro ? "Active" : "Current"}
+                  {isPro ? t("settings.active") : t("settings.current")}
                 </span>
               </div>
               <ul className="space-y-2">
                 <li className="flex items-center text-sm text-gray-600">
                   <Check size={14} className="mr-2 text-green-500" />
-                  {isPro ? "No watermarks on PDFs" : "Watermark on PDFs"}
+                  {isPro ? t("settings.noWatermark") : t("settings.watermark")}
                 </li>
                 <li className="flex items-center text-sm text-gray-600">
                   <Check size={14} className="mr-2 text-green-500" />
-                  Custom business logo
+                  {t("settings.customLogo")}
                 </li>
                 <li className="flex items-center text-sm text-gray-600">
                   <Check size={14} className="mr-2 text-green-500" />
-                  {isPro ? "Priority support" : "Standard support"}
+                  {isPro ? t("settings.prioritySupport") : t("settings.standardSupport")}
                 </li>
               </ul>
             </div>
@@ -172,7 +174,7 @@ export default function Settings() {
                   : "bg-yellow-500 hover:bg-yellow-600 text-white"
               }`}
             >
-              {isPro ? "Downgrade to Free" : "Upgrade to Pro"}
+              {isPro ? t("settings.downgradeToFree") : t("settings.upgradeToPro")}
             </button>
           </div>
         </div>

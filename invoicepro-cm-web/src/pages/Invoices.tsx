@@ -4,10 +4,12 @@ import { api, formatFCFA } from "../lib/api";
 import Layout from "../components/Layout";
 import { TableRowSkeleton } from "../components/Skeleton";
 import { useToast } from "../components/Toast";
+import { useLanguage } from "../context/LanguageContext";
 import { FileText, Plus, Eye, Trash2, Search } from "lucide-react";
 
 export default function Invoices() {
   const { showToast } = useToast();
+  const { t } = useLanguage();
   const [invoices, setInvoices] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -38,8 +40,19 @@ export default function Invoices() {
     return styles[status as keyof typeof styles] || "bg-gray-100 text-gray-700";
   };
 
+  const getStatusLabel = (status: string) => {
+    const labels: Record<string, string> = {
+      DRAFT: t("invoices.draft"),
+      SENT: t("invoices.sent"),
+      PAID: t("invoices.paid"),
+      OVERDUE: t("invoices.overdue"),
+      VOID: t("invoices.void"),
+    };
+    return labels[status] || status;
+  };
+
   async function handleDelete(id: string) {
-    if (!confirm("Are you sure you want to delete this invoice?")) return;
+    if (!confirm(t("invoices.confirmDelete"))) return;
     try {
       await api(`/invoices/${id}`, { method: "DELETE" });
       await api("/invoices").then((res) => setInvoices(res.invoices || []));
@@ -54,15 +67,15 @@ export default function Invoices() {
         {/* Header with BIG ADD Button */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Invoices</h1>
-            <p className="text-gray-500 mt-1">Create and manage your invoices.</p>
+            <h1 className="text-2xl font-bold text-gray-900">{t("invoices.title")}</h1>
+            <p className="text-gray-500 mt-1">{t("invoices.subtitle")}</p>
           </div>
           <Link
             to="/invoices/new"
             className="flex items-center px-8 py-4 bg-green-600 hover:bg-green-700 text-white text-lg font-bold rounded-xl shadow-lg transition-all duration-200 hover:shadow-xl hover:scale-105"
           >
             <Plus size={24} className="mr-3" />
-            ADD INVOICE
+            {t("dashboard.addInvoice")}
           </Link>
         </div>
 
@@ -74,7 +87,7 @@ export default function Invoices() {
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search invoices or customers..."
+              placeholder={t("invoices.searchPlaceholder")}
               className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all"
             />
           </div>
@@ -83,12 +96,12 @@ export default function Invoices() {
             onChange={(e) => setStatusFilter(e.target.value)}
             className="px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all"
           >
-            <option value="ALL">All Status</option>
-            <option value="DRAFT">Draft</option>
-            <option value="SENT">Sent</option>
-            <option value="PAID">Paid</option>
-            <option value="OVERDUE">Overdue</option>
-            <option value="VOID">Void</option>
+            <option value="ALL">{t("invoices.allStatus")}</option>
+            <option value="DRAFT">{t("invoices.draft")}</option>
+            <option value="SENT">{t("invoices.sent")}</option>
+            <option value="PAID">{t("invoices.paid")}</option>
+            <option value="OVERDUE">{t("invoices.overdue")}</option>
+            <option value="VOID">{t("invoices.void")}</option>
           </select>
         </div>
 
@@ -98,11 +111,11 @@ export default function Invoices() {
             <table className="w-full">
               <thead>
                 <tr className="bg-gray-50 text-left">
-                  <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase">Invoice</th>
-                  <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase">Customer</th>
-                  <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase">Due Date</th>
-                  <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase">Amount</th>
-                  <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase">Status</th>
+                  <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase">{t("table.invoice")}</th>
+                  <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase">{t("table.customer")}</th>
+                  <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase">{t("table.dueDate")}</th>
+                  <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase">{t("table.amount")}</th>
+                  <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase">{t("table.status")}</th>
                   <th className="px-6 py-3"></th>
                 </tr>
               </thead>
@@ -117,14 +130,14 @@ export default function Invoices() {
         ) : filteredInvoices.length === 0 ? (
           <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
             <FileText size={48} className="mx-auto text-gray-300 mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No invoices found</h3>
-            <p className="text-gray-500 mb-6">Create your first invoice to get started.</p>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">{t("invoices.noInvoices")}</h3>
+            <p className="text-gray-500 mb-6">{t("invoices.createFirst")}</p>
             <Link
               to="/invoices/new"
               className="px-8 py-4 bg-green-600 hover:bg-green-700 text-white text-lg font-bold rounded-xl shadow-lg"
             >
               <Plus size={24} className="inline mr-3" />
-              ADD INVOICE
+              {t("dashboard.addInvoice")}
             </Link>
           </div>
         ) : (
@@ -133,12 +146,12 @@ export default function Invoices() {
               <table className="w-full">
                 <thead>
                   <tr className="bg-gray-50 text-left">
-                    <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Invoice</th>
-                    <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
-                    <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Due Date</th>
-                    <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                    <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                    <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider text-right">Actions</th>
+                    <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">{t("table.invoice")}</th>
+                    <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">{t("table.customer")}</th>
+                    <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">{t("table.dueDate")}</th>
+                    <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">{t("table.amount")}</th>
+                    <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">{t("table.status")}</th>
+                    <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider text-right">{t("invoices.actions")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
@@ -152,7 +165,7 @@ export default function Invoices() {
                       <td className="px-6 py-4 font-medium text-gray-900">{formatFCFA(invoice.total)}</td>
                       <td className="px-6 py-4">
                         <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadge(invoice.status)}`}>
-                          {invoice.status}
+                          {getStatusLabel(invoice.status)}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right">
@@ -184,6 +197,3 @@ export default function Invoices() {
     </Layout>
   );
 }
-
-
-
