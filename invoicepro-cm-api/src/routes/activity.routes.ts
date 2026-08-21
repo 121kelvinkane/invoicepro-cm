@@ -6,7 +6,7 @@ const router = Router();
 
 router.get("/", requireAuth, async (req: AuthRequest, res) => {
   try {
-    const userId = req.userId as string;
+    const userId = (req as any).userId as string;
     const logs = await prisma.activityLog.findMany({
       where: { userId },
       orderBy: { createdAt: "desc" },
@@ -19,3 +19,4 @@ router.get("/", requireAuth, async (req: AuthRequest, res) => {
 });
 
 export default router;
+

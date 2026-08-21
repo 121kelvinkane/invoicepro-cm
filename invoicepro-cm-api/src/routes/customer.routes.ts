@@ -1,4 +1,4 @@
-import { Router } from "express";
+﻿import { Router } from "express";
 import { prisma } from "../lib/prisma";
 import { AuthRequest, requireAuth } from "../middleware/auth";
 import {
@@ -12,7 +12,7 @@ router.use(requireAuth);
 
 router.get("/", async (req: AuthRequest, res) => {
   try {
-    const userId = req.userId as string;
+    const userId = (req as any).userId as string;
     const search = req.query.search?.toString();
 
     const customers = await prisma.customer.findMany({
@@ -42,7 +42,7 @@ router.get("/", async (req: AuthRequest, res) => {
 
 router.post("/", async (req: AuthRequest, res) => {
   try {
-    const userId = req.userId as string;
+    const userId = (req as any).userId as string;
 
     const parsed = createCustomerSchema.safeParse(req.body);
 
@@ -74,7 +74,7 @@ router.post("/", async (req: AuthRequest, res) => {
 
 router.get("/:id", async (req: AuthRequest, res) => {
   try {
-    const userId = req.userId as string;
+    const userId = (req as any).userId as string;
     const customerId = req.params.id;
 
     const customer = await prisma.customer.findFirst({
@@ -101,7 +101,7 @@ router.get("/:id", async (req: AuthRequest, res) => {
 
 router.put("/:id", async (req: AuthRequest, res) => {
   try {
-    const userId = req.userId as string;
+    const userId = (req as any).userId as string;
     const customerId = req.params.id;
 
     const parsed = updateCustomerSchema.safeParse(req.body);
@@ -145,7 +145,7 @@ router.put("/:id", async (req: AuthRequest, res) => {
 
 router.delete("/:id", async (req: AuthRequest, res) => {
   try {
-    const userId = req.userId as string;
+    const userId = (req as any).userId as string;
     const customerId = req.params.id;
 
     const existingCustomer = await prisma.customer.findFirst({
@@ -188,7 +188,7 @@ router.delete("/:id", async (req: AuthRequest, res) => {
 
 router.get("/:id/invoices", async (req: AuthRequest, res) => {
   try {
-    const userId = req.userId as string;
+    const userId = (req as any).userId as string;
     const customerId = req.params.id;
 
     const customer = await prisma.customer.findFirst({
@@ -224,3 +224,4 @@ router.get("/:id/invoices", async (req: AuthRequest, res) => {
 });
 
 export default router;
+

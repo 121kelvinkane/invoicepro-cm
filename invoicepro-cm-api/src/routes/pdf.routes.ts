@@ -10,7 +10,7 @@ const router = Router();
 
 router.get("/invoices/:id/pdf", requireAuth, async (req: AuthRequest, res) => {
   try {
-    const userId = req.userId as string;
+    const userId = (req as any).userId as string;
     const invoiceId = req.params.id;
 
     const invoice = await prisma.invoice.findFirst({
@@ -145,6 +145,7 @@ router.post("/public/invoices/:token/sign", async (req, res) => {
 });
 
 export default router;
+
 
 
 

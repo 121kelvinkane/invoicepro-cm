@@ -34,7 +34,7 @@ const upload = multer({
 // GET /business - Fetch profile for UI
 router.get("/", requireAuth, async (req: any, res) => {
   try {
-    const userId = req.user?.id || req.userId;
+    const userId = req.user?.id || (req as any).userId;
     const profile = await prisma.businessProfile.findUnique({ where: { userId } });
     if (!profile) return res.json({ name: "", tin: "", address: "", phone: "", email: "", logoUrl: "" });
     
@@ -95,7 +95,7 @@ router.post("/signature", requireAuth, uploadSignature.single("signature"), asyn
 // PUT /business - Save profile details
 router.put("/", requireAuth, async (req: any, res) => {
   try {
-    const userId = req.user?.id || req.userId;
+    const userId = req.user?.id || (req as any).userId;
     if (!userId) return res.status(401).json({ error: "Unauthorized" });
     const { name, tin, address, phone, email, logoUrl, signatureUrl } = req.body;
 
@@ -143,6 +143,7 @@ router.put("/", requireAuth, async (req: any, res) => {
 });
 
 export default router;
+
 
 
 

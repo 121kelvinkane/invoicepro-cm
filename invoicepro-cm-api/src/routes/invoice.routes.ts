@@ -49,7 +49,7 @@ async function generateInvoiceNumber(userId: string, year: number) {
 
 router.get("/", async (req: AuthRequest, res) => {
   try {
-    const userId = req.userId as string;
+    const userId = (req as any).userId as string;
     const status = req.query.status?.toString().toUpperCase();
 
     const allowedStatuses = ["DRAFT", "SENT", "PAID", "OVERDUE", "VOID"];
@@ -87,7 +87,7 @@ router.get("/", async (req: AuthRequest, res) => {
 
 router.post("/", async (req: AuthRequest, res) => {
   try {
-    const userId = req.userId as string;
+    const userId = (req as any).userId as string;
 
     const parsed = createInvoiceSchema.safeParse(req.body);
 
@@ -223,7 +223,7 @@ router.post("/", async (req: AuthRequest, res) => {
 
 router.get("/:id", async (req: AuthRequest, res) => {
   try {
-    const userId = req.userId as string;
+    const userId = (req as any).userId as string;
     const invoiceId = req.params.id;
 
     const invoice = await prisma.invoice.findFirst({
@@ -259,7 +259,7 @@ router.get("/:id", async (req: AuthRequest, res) => {
 
 router.put("/:id", async (req: AuthRequest, res) => {
   try {
-    const userId = req.userId as string;
+    const userId = (req as any).userId as string;
     const invoiceId = req.params.id;
 
     const parsed = createInvoiceSchema.safeParse(req.body);
@@ -380,7 +380,7 @@ router.put("/:id", async (req: AuthRequest, res) => {
 
 router.delete("/:id", async (req: AuthRequest, res) => {
   try {
-    const userId = req.userId as string;
+    const userId = (req as any).userId as string;
     const invoiceId = req.params.id;
 
     const invoice = await prisma.invoice.findFirst({
@@ -419,7 +419,7 @@ router.delete("/:id", async (req: AuthRequest, res) => {
 
 router.post("/:id/void", async (req: AuthRequest, res) => {
   try {
-    const userId = req.userId as string;
+    const userId = (req as any).userId as string;
     const invoiceId = req.params.id;
 
     const invoice = await prisma.invoice.findFirst({
@@ -462,7 +462,7 @@ router.post("/:id/void", async (req: AuthRequest, res) => {
 
 router.post("/:id/send", async (req: AuthRequest, res) => {
   try {
-    const userId = req.userId as string;
+    const userId = (req as any).userId as string;
     const invoiceId = req.params.id;
 
     const invoice = await prisma.invoice.findFirst({
@@ -509,7 +509,7 @@ router.post("/:id/send", async (req: AuthRequest, res) => {
 
 router.post("/:id/manual-payment", async (req: AuthRequest, res) => {
   try {
-    const userId = req.userId as string;
+    const userId = (req as any).userId as string;
     const invoiceId = req.params.id;
 
     const parsed = manualPaymentSchema.safeParse(req.body);
@@ -636,5 +636,6 @@ router.post("/send-payment-link", async (req: any, res) => {
   }
 });
 export default router;
+
 
 

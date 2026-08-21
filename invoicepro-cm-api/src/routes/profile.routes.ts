@@ -8,7 +8,7 @@ const prisma = new PrismaClient();
 router.get("/", requireAuth, async (req, res) => {
   try {
     const user = await prisma.user.findUnique({
-      where: { id: req.userId },
+      where: { id: (req as any).userId },
       include: { businessProfile: true }
     });
     if (!user) return res.status(404).json({ error: "User not found" });
@@ -23,3 +23,4 @@ router.get("/", requireAuth, async (req, res) => {
 });
 
 export default router;
+
