@@ -7,8 +7,11 @@ const prisma = new PrismaClient();
 
 router.get("/", requireAuth, async (req, res) => {
   try {
+    // FORCE CAST TO ANY TO FIX TYPESCRIPT BUILD ERROR
+    const userId = (req as any).userId;
+    
     const user = await prisma.user.findUnique({
-      where: { id: req.userId },
+      where: { id: userId },
       include: { businessProfile: true }
     });
     if (!user) return res.status(404).json({ error: "User not found" });
