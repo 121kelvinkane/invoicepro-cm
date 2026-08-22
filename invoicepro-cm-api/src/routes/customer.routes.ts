@@ -1,49 +1,39 @@
 import { Router } from "express";
 import { prisma } from "../lib/prisma";
-import jwt from "jsonwebtoken";
+import { AuthRequest, requireAuth } from "../middleware/auth";
 
 const router = Router();
+router.use(requireAuth);
 
-// DEBUG ROUTE: Visit this in browser to check your token
-router.get("/debug-token", async (req, res) => {
+router.post("/", async (req: AuthRequest, res) => {
   try {
-    const authHeader = req.headers.authorization;
-    const token = authHeader?.split(" ")[1] || "NO TOKEN";
-    if (token === "NO TOKEN") return res.json({ error: "Frontend is not sending a token!" });
+    const userId = req.userId as string;
+    console.log("🔵 CREATING CUSTOMER FOR USER:", userId);
     
-    const decoded: any = jwt.verify(token, process.env.JWT_SECRET || "secret");
-    res.json({ 
-      message: "Token is valid!", 
-      yourUserId: decoded.userId,
-      fullPayload: decoded 
+    const customer = await prisma.customer.create({
+      data: {
+        userId,
+        name: req.body.name,
+        email: req.body.email,
+        phone: req.body.phone,
+        address: req.body.address,
+        city: req.body.city,
+      },
     });
+    return res.status(201).json({ message: "Customer created", customer });
   } catch (err: any) {
-    res.json({ error: "Token is invalid or expired", details: err.message });
+    console.error("❌ CUSTOMER ERROR:", err.message);
+    return res.status(500).json({ error: err.message, meta: err.meta });
   }
 });
 
-router.post("/", async (req, res) => {
+router.get("/", async (req: AuthRequest, res) => {
   try {
-    const authHeader = req.headers.authorization;
-    const token = authHeader?.split(" ")[1] || "";
-    const decoded: any = jwt.verify(token, process.env.JWT_SECRET || "secret");
-    const userId = decoded.userId;
-
-    if (!userId) return res.status(400).json({ error: "Token has no userId", payload: decoded });
-
-    // Bypass strict validation for now and just save it directly
-    const customer = await prisma.customer.create({ 
-      data: { userId, ...req.body } 
-    });
-    
-    return res.status(201).json({ message: "Success", customer });
+    const userId = req.userId as string;
+    const customers = await prisma.customer.findMany({ where: { userId }, orderBy: { createdAt: "desc" } });
+    return res.json({ customers });
   } catch (err: any) {
-    // FORCE THE EXACT ERROR INTO THE BROWSER NETWORK TAB
-    return res.status(500).json({ 
-      error: err.message, 
-      prismaCode: err.code,
-      meta: err.meta
-    });
+    return res.status(500).json({ error: err.message });
   }
 });
 
