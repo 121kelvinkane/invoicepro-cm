@@ -19,7 +19,7 @@ router.get("/", async (req: any, res) => {
     if (!user) return res.status(404).json({ error: "User not found" });
     
     const { passwordHash, resetToken, resetTokenExpires, ...safeUser } = user;
-    res.json(safeUser);
+    res.json({ ...safeUser, profile: safeUser.businessProfile });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
