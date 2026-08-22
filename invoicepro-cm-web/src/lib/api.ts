@@ -41,3 +41,4 @@ export async function api(path: string, options: RequestInit = {}) {
 
   return data;
 }
+
