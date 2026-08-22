@@ -11,8 +11,7 @@ router.get("/", async (req, res) => {
     if (!authHeader) return res.status(401).json({ error: "No token provided" });
     const token = authHeader.split(" ")[1];
     
-    // FIX 1: Cast decoded token to 'any' so we can read userId
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || "secret") as any;
+    const decoded: any = jwt.verify(token, process.env.JWT_SECRET || "secret");
     const uid = decoded.userId;
     
     const user = await prisma.user.findUnique({
@@ -24,8 +23,7 @@ router.get("/", async (req, res) => {
     
     const { passwordHash, resetToken, resetTokenExpires, ...safeUser } = user;
     res.json(safeUser);
-  } catch (err: any) { 
-    // FIX 2: Type 'err' as 'any' so TypeScript lets us read err.message
+  } catch (err: any) {
     console.error("PROFILE ERROR:", err.message);
     res.status(500).json({ error: err.message || "Server error" });
   }
