@@ -33,7 +33,7 @@ export async function api(path: string, options: RequestInit = {}) {
     headers,
   });
 
-  const data = await res.json().catch(() => ({}));
+  let data: any = {}; try { data = await res.json(); } catch (e) { const text = await res.text(); data = { error: text }; } console.log("🕵️‍♂️ RAW BACKEND RESPONSE:", data);
 
   if (!res.ok) {
     throw new Error(data.message || data.error || "Request failed");
@@ -41,4 +41,5 @@ export async function api(path: string, options: RequestInit = {}) {
 
   return data;
 }
+
 
