@@ -80,7 +80,7 @@ router.get("/", async (req: AuthRequest, res) => {
   } catch (error: any) {
     console.error(error);
     return res.status(500).json({
-      message: err ? (err.message || String(err)) : "Server error",
+      message: error ? (error.message || String(error)) : "Server error",
     });
   }
 });
@@ -216,7 +216,7 @@ router.post("/", async (req: AuthRequest, res) => {
   } catch (error: any) {
     console.error(error);
     return res.status(500).json({
-      message: err ? (err.message || String(err)) : "Server error",
+      message: error ? (error.message || String(error)) : "Server error",
     });
   }
 });
@@ -252,7 +252,7 @@ router.get("/:id", async (req: AuthRequest, res) => {
   } catch (error: any) {
     console.error(error);
     return res.status(500).json({
-      message: err ? (err.message || String(err)) : "Server error",
+      message: error ? (error.message || String(error)) : "Server error",
     });
   }
 });
@@ -373,7 +373,7 @@ router.put("/:id", async (req: AuthRequest, res) => {
   } catch (error: any) {
     console.error(error);
     return res.status(500).json({
-      message: err ? (err.message || String(err)) : "Server error",
+      message: error ? (error.message || String(error)) : "Server error",
     });
   }
 });
@@ -412,7 +412,7 @@ router.delete("/:id", async (req: AuthRequest, res) => {
   } catch (error: any) {
     console.error(error);
     return res.status(500).json({
-      message: err ? (err.message || String(err)) : "Server error",
+      message: error ? (error.message || String(error)) : "Server error",
     });
   }
 });
@@ -455,7 +455,7 @@ router.post("/:id/void", async (req: AuthRequest, res) => {
   } catch (error: any) {
     console.error(error);
     return res.status(500).json({
-      message: err ? (err.message || String(err)) : "Server error",
+      message: error ? (error.message || String(error)) : "Server error",
     });
   }
 });
@@ -502,7 +502,7 @@ router.post("/:id/send", async (req: AuthRequest, res) => {
   } catch (error: any) {
     console.error(error);
     return res.status(500).json({
-      message: err ? (err.message || String(err)) : "Server error",
+      message: error ? (error.message || String(error)) : "Server error",
     });
   }
 });
@@ -584,7 +584,7 @@ router.post("/:id/manual-payment", async (req: AuthRequest, res) => {
   } catch (error: any) {
     console.error(error);
     return res.status(500).json({
-      message: err ? (err.message || String(err)) : "Server error",
+      message: error ? (error.message || String(error)) : "Server error",
     });
   }
 });
