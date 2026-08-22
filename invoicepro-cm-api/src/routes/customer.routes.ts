@@ -33,9 +33,9 @@ router.get("/", async (req: AuthRequest, res) => {
 
     return res.json({ customers });
   } catch (error) {
-    console.error(error);
+    console.error("❌ CUSTOMER ERROR:", error);
     return res.status(500).json({
-      message: "Internal server error",
+      message: error.message || "Internal server error",
     });
   }
 });
@@ -65,9 +65,9 @@ router.post("/", async (req: AuthRequest, res) => {
       customer,
     });
   } catch (error) {
-    console.error(error);
+    console.error("❌ CUSTOMER ERROR:", error);
     return res.status(500).json({
-      message: "Internal server error",
+      message: error.message || "Internal server error",
     });
   }
 });
@@ -92,9 +92,9 @@ router.get("/:id", async (req: AuthRequest, res) => {
 
     return res.json({ customer });
   } catch (error) {
-    console.error(error);
+    console.error("❌ CUSTOMER ERROR:", error);
     return res.status(500).json({
-      message: "Internal server error",
+      message: error.message || "Internal server error",
     });
   }
 });
@@ -136,9 +136,9 @@ router.put("/:id", async (req: AuthRequest, res) => {
       customer,
     });
   } catch (error) {
-    console.error(error);
+    console.error("❌ CUSTOMER ERROR:", error);
     return res.status(500).json({
-      message: "Internal server error",
+      message: error.message || "Internal server error",
     });
   }
 });
@@ -179,9 +179,9 @@ router.delete("/:id", async (req: AuthRequest, res) => {
       message: "Customer deleted successfully",
     });
   } catch (error) {
-    console.error(error);
+    console.error("❌ CUSTOMER ERROR:", error);
     return res.status(500).json({
-      message: "Internal server error",
+      message: error.message || "Internal server error",
     });
   }
 });
@@ -216,9 +216,9 @@ router.get("/:id/invoices", async (req: AuthRequest, res) => {
 
     return res.json({ invoices });
   } catch (error) {
-    console.error(error);
+    console.error("❌ CUSTOMER ERROR:", error);
     return res.status(500).json({
-      message: "Internal server error",
+      message: error.message || "Internal server error",
     });
   }
 });
