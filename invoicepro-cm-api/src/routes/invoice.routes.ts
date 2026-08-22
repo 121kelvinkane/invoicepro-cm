@@ -77,10 +77,10 @@ router.get("/", async (req: AuthRequest, res) => {
     });
 
     return res.json({ invoices });
-  } catch (error) {
+  } catch (error: any) {
     console.error(error);
     return res.status(500).json({
-      message: "Internal server error",
+      message: err ? (err.message || String(err)) : "Server error",
     });
   }
 });
@@ -213,10 +213,10 @@ router.post("/", async (req: AuthRequest, res) => {
       message: "Invoice created successfully",
       invoice,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error(error);
     return res.status(500).json({
-      message: "Internal server error",
+      message: err ? (err.message || String(err)) : "Server error",
     });
   }
 });
@@ -249,10 +249,10 @@ router.get("/:id", async (req: AuthRequest, res) => {
     }
 
     return res.json({ invoice });
-  } catch (error) {
+  } catch (error: any) {
     console.error(error);
     return res.status(500).json({
-      message: "Internal server error",
+      message: err ? (err.message || String(err)) : "Server error",
     });
   }
 });
@@ -370,10 +370,10 @@ router.put("/:id", async (req: AuthRequest, res) => {
       message: "Invoice updated successfully",
       invoice: updatedInvoice,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error(error);
     return res.status(500).json({
-      message: "Internal server error",
+      message: err ? (err.message || String(err)) : "Server error",
     });
   }
 });
@@ -409,10 +409,10 @@ router.delete("/:id", async (req: AuthRequest, res) => {
     return res.json({
       message: "Invoice deleted successfully",
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error(error);
     return res.status(500).json({
-      message: "Internal server error",
+      message: err ? (err.message || String(err)) : "Server error",
     });
   }
 });
@@ -452,10 +452,10 @@ router.post("/:id/void", async (req: AuthRequest, res) => {
       message: "Invoice voided successfully",
       invoice: updatedInvoice,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error(error);
     return res.status(500).json({
-      message: "Internal server error",
+      message: err ? (err.message || String(err)) : "Server error",
     });
   }
 });
@@ -499,10 +499,10 @@ router.post("/:id/send", async (req: AuthRequest, res) => {
       message: "Invoice marked as sent. Email delivery will be added next.",
       invoice: updatedInvoice,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error(error);
     return res.status(500).json({
-      message: "Internal server error",
+      message: err ? (err.message || String(err)) : "Server error",
     });
   }
 });
@@ -581,10 +581,10 @@ router.post("/:id/manual-payment", async (req: AuthRequest, res) => {
       payment,
       invoice: updatedInvoice,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error(error);
     return res.status(500).json({
-      message: "Internal server error",
+      message: err ? (err.message || String(err)) : "Server error",
     });
   }
 });
