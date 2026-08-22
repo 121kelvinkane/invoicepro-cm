@@ -169,11 +169,9 @@ export default function InvoiceDetails() {
             <Link to={`/invoices/${id}/edit`} className="p-2 text-gray-400 hover:text-primary-600 rounded-lg hover:bg-primary-50 transition-colors">
               <Edit2 size={18} />
             </Link>
-            {invoice.status === "DRAFT" && (
-              <button onClick={deleteInvoice} className="p-2 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors">
+            <button onClick={deleteInvoice} className="p-2 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors">
                 <Trash2 size={18} />
               </button>
-            )}
             {["SENT", "OVERDUE"].includes(invoice.status) && (
               <button onClick={voidInvoice} className="p-2 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors">
                 <Ban size={18} />
