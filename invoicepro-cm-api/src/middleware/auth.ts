@@ -23,7 +23,7 @@ export function requireAuth(
 
   try {
     const payload = verifyAccessToken(token);
-    (req as any).userId = payload.sub;
+    (req as any).userId = payload.userId || payload.sub;
     req.userEmail = payload.email;
     return next();
   } catch (error) {
