@@ -1,13 +1,14 @@
-﻿import BusinessProfileCard from "../components/BusinessProfileCard";
+import BusinessProfileCard from "../components/BusinessProfileCard";
 import { useEffect, useState } from "react";
 import { api, getToken } from "../lib/api";
 import Layout from "../components/Layout";
 import { useLanguage } from "../context/LanguageContext";
-import { Upload, Crown, Check, Building2, CreditCard } from "lucide-react";
+import { Upload, Crown, Check, Building2, CreditCard, User } from "lucide-react";
 
 export default function Settings() {
   const { t } = useLanguage();
   const [profile, setProfile] = useState<any>(null);
+  const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [file, setFile] = useState<File | null>(null);
@@ -20,7 +21,8 @@ export default function Settings() {
       setLoading(true);
       setError("");
       const res = await api("/profile");
-      setProfile(res.profile);
+      setProfile(res.profile || {});
+      setUser({ fullName: res.fullName, email: res.email, createdAt: res.createdAt });
     } catch (err: any) {
       console.error("Failed to load profile:", err);
       setError(err.message || "Failed to load settings");
@@ -99,18 +101,7 @@ export default function Settings() {
     );
   }
 
-  if (!profile) {
-    return (
-      <Layout>
-        <div className="max-w-4xl mx-auto">
-          <div className="p-6 bg-yellow-50 border border-yellow-200 text-yellow-700 rounded-xl">
-            <h2 className="text-lg font-bold mb-2">{t("settings.noProfileTitle")}</h2>
-            <p>{t("settings.noProfileText")}</p>
-          </div>
-        </div>
-      </Layout>
-    );
-  }
+  
 
   const isPro = profile.plan === "PRO";
 
@@ -127,6 +118,30 @@ export default function Settings() {
             {msg}
           </div>
         )}
+
+        {/* Account Information Card */}
+        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-card mb-6">
+          <div className="flex items-center mb-4">
+            <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center mr-3">
+              <User className="text-blue-600" size={20} />
+            </div>
+            <h2 className="text-lg font-semibold text-gray-900">Account Information</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-500 mb-1">Full Name</label>
+              <p className="text-base text-gray-900 font-medium">{user?.fullName || "N/A"}</p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-500 mb-1">Email Address</label>
+              <p className="text-base text-gray-900 font-medium">{user?.email || "N/A"}</p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-500 mb-1">Member Since</label>
+              <p className="text-base text-gray-900">{user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : "N/A"}</p>
+            </div>
+          </div>
+        </div>
 
         <BusinessProfileCard />
 
