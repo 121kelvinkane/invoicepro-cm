@@ -1,3 +1,4 @@
+console.log("🚀🚀🚀 NEW CODE DEPLOYED V99 🚀🚀🚀");
 ﻿import businessRoutes from "./routes/business.routes";
 import "dotenv/config";
 import express from "express";
@@ -14,6 +15,7 @@ import activityRoutes from "./routes/activity.routes";
 
 const app = express();
 
+app.get("/api/v1/test-health", (req, res) => res.json({ status: "alive V99" }));
 app.use(helmet({ crossOriginResourcePolicy: false }));
 const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
 app.use(cors({ origin: frontendUrl, credentials: true }));
