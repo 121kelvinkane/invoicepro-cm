@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { api, formatFCFA, getToken } from "../lib/api";
 import Layout from "../components/Layout";
@@ -15,6 +15,7 @@ export default function InvoiceDetails() {
   const [success, setSuccess] = useState("");
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [paymentForm, setPaymentForm] = useState({ method: "MTN_MOMO", amount: "", reference: "", note: "" });
+  const [simulating, setSimulating] = useState(false);
 
   async function loadInvoice() {
     try {
@@ -67,6 +68,19 @@ export default function InvoiceDetails() {
       await loadInvoice();
     } catch (err: any) {
       setError(err.message);
+    }
+  }
+
+  async function simulatePayment() {
+    setSimulating(true);
+    try {
+      await api(`/invoices/${id}/pay`, { method: "POST" });
+      showToast("Payment successful! (Test Mode)", "success");
+      await loadInvoice();
+    } catch (err: any) {
+      showToast(err.message || "Payment failed", "error");
+    } finally {
+      setSimulating(false);
     }
   }
 
@@ -195,6 +209,15 @@ export default function InvoiceDetails() {
             <MessageCircle size={18} className="mr-2" />
             Share WhatsApp
           </a>
+          {invoice.status !== "PAID" && (
+            <button
+              onClick={simulatePayment}
+              disabled={simulating}
+              className="flex items-center px-6 py-3 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-bold rounded-lg transition-colors"
+            >
+              {simulating ? "Processing..." : "Simulate Payment"}
+            </button>
+          )}
           {invoice.status !== "PAID" && (
             <button
               onClick={() => setShowPaymentModal(true)}
