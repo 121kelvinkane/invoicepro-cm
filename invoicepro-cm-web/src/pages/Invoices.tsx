@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, formatFCFA } from "../lib/api";
 import Layout from "../components/Layout";
@@ -176,14 +176,12 @@ export default function Invoices() {
                           >
                             <Eye size={16} />
                           </Link>
-                          {invoice.status === "DRAFT" && (
-                            <button
+                          <button
                               onClick={() => handleDelete(invoice.id)}
                               className="p-1.5 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors"
                             >
                               <Trash2 size={16} />
                             </button>
-                          )}
                         </div>
                       </td>
                     </tr>
