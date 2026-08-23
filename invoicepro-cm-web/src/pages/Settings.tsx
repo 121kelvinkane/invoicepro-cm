@@ -3,12 +3,15 @@ import { useEffect, useState } from "react";
 import { api, getToken } from "../lib/api";
 import Layout from "../components/Layout";
 import { useLanguage } from "../context/LanguageContext";
-import { Upload, Crown, Check, Building2, CreditCard, User } from "lucide-react";
+import { Upload, Crown, Check, Building2, CreditCard, User, Edit3, Save, X } from "lucide-react";
 
 export default function Settings() {
   const { t } = useLanguage();
   const [profile, setProfile] = useState<any>(null);
   const [user, setUser] = useState<any>(null);
+  const [editingAccount, setEditingAccount] = useState(false);
+  const [editForm, setEditForm] = useState({ fullName: "", email: "" });
+  const [savingAccount, setSavingAccount] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [file, setFile] = useState<File | null>(null);
@@ -59,6 +62,25 @@ export default function Settings() {
       setMsgType("error");
     } finally {
       setUploading(false);
+    }
+  }
+
+  async function saveAccount() {
+    setSavingAccount(true);
+    try {
+      const res = await api("/profile/account", {
+        method: "PATCH",
+        body: JSON.stringify(editForm),
+      });
+      setUser(res.user);
+      setEditingAccount(false);
+      setMsg("Account updated successfully!");
+      setMsgType("success");
+    } catch (err: any) {
+      setMsg(err.message || "Failed to update account");
+      setMsgType("error");
+    } finally {
+      setSavingAccount(false);
     }
   }
 
@@ -121,26 +143,76 @@ export default function Settings() {
 
         {/* Account Information Card */}
         <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-card mb-6">
-          <div className="flex items-center mb-4">
-            <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center mr-3">
-              <User className="text-blue-600" size={20} />
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center">
+              <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center mr-3">
+                <User className="text-blue-600" size={20} />
+              </div>
+              <h2 className="text-lg font-semibold text-gray-900">Account Information</h2>
             </div>
-            <h2 className="text-lg font-semibold text-gray-900">Account Information</h2>
+            {!editingAccount && (
+              <button
+                onClick={() => { setEditForm({ fullName: user?.fullName || "", email: user?.email || "" }); setEditingAccount(true); }}
+                className="flex items-center px-3 py-1.5 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+              >
+                <Edit3 size={14} className="mr-1" /> Edit
+              </button>
+            )}
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-500 mb-1">Full Name</label>
-              <p className="text-base text-gray-900 font-medium">{user?.fullName || "N/A"}</p>
+          {editingAccount ? (
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-500 mb-1">Full Name</label>
+                  <input
+                    type="text"
+                    value={editForm.fullName}
+                    onChange={(e) => setEditForm(prev => ({ ...prev, fullName: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-500 mb-1">Email Address</label>
+                  <input
+                    type="email"
+                    value={editForm.email}
+                    onChange={(e) => setEditForm(prev => ({ ...prev, email: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  />
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={saveAccount}
+                  disabled={savingAccount}
+                  className="flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white text-sm font-medium rounded-lg transition-colors"
+                >
+                  <Save size={14} className="mr-1" /> {savingAccount ? "Saving..." : "Save Changes"}
+                </button>
+                <button
+                  onClick={() => setEditingAccount(false)}
+                  className="flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-lg transition-colors"
+                >
+                  <X size={14} className="mr-1" /> Cancel
+                </button>
+              </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-500 mb-1">Email Address</label>
-              <p className="text-base text-gray-900 font-medium">{user?.email || "N/A"}</p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-500 mb-1">Full Name</label>
+                <p className="text-base text-gray-900 font-medium">{user?.fullName || "N/A"}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-500 mb-1">Email Address</label>
+                <p className="text-base text-gray-900 font-medium">{user?.email || "N/A"}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-500 mb-1">Member Since</label>
+                <p className="text-base text-gray-900">{user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : "N/A"}</p>
+              </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-500 mb-1">Member Since</label>
-              <p className="text-base text-gray-900">{user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : "N/A"}</p>
-            </div>
-          </div>
+          )}
         </div>
 
         <BusinessProfileCard />
