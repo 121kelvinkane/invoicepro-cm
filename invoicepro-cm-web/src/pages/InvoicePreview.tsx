@@ -1,8 +1,10 @@
-﻿import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { api } from "../lib/api";
 import { useToast } from "../components/Toast";
 import { ArrowLeft, Printer, MessageCircle, Mail } from "lucide-react";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 
 export default function InvoicePreview() {
   const { id } = useParams();
