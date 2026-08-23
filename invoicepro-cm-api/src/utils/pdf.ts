@@ -1,14 +1,21 @@
-import puppeteer from "puppeteer";
+import chromium from "@sparticuz/chromium";
+import puppeteer from "puppeteer-core";
+
+function money(amount: number) { return `FCFA ${Number(amount || 0).toLocaleString()}`; }
+function formatDate(value: any) {
+  try { return new Date(value).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }); } catch { return ""; }
+}
 
 export async function generateInvoicePdf(invoice: any, business: any, customer: any, options: any = {}) {
   const browser = await puppeteer.launch({
-    headless: true,
-    args: ["--no-sandbox", "--disable-setuid-sandbox"]
+    args: chromium.args,
+    defaultViewport: chromium.defaultViewport,
+    executablePath: await chromium.executablePath(),
+    headless: chromium.headless,
   });
   
   const page = await browser.newPage();
   
-  // Build the HTML from the preview page design
   const html = `
 <!DOCTYPE html>
 <html>
@@ -31,9 +38,7 @@ export async function generateInvoicePdf(invoice: any, business: any, customer: 
       border-bottom: 2px solid #e2e8f0;
     }
     .logo { max-width: 120px; max-height: 80px; }
-    .invoice-title {
-      text-align: right;
-    }
+    .invoice-title { text-align: right; }
     .invoice-title h1 {
       font-size: 32px;
       font-weight: 700;
@@ -43,7 +48,7 @@ export async function generateInvoicePdf(invoice: any, business: any, customer: 
     .invoice-title .info {
       font-size: 14px;
       color: #718096;
-      line-height: 1.6;
+      line-height: 1.8;
     }
     .addresses {
       display: grid;
@@ -61,7 +66,7 @@ export async function generateInvoicePdf(invoice: any, business: any, customer: 
     }
     .address-block p {
       font-size: 14px;
-      line-height: 1.6;
+      line-height: 1.8;
       color: #2d3748;
     }
     .items-table {
@@ -74,29 +79,20 @@ export async function generateInvoicePdf(invoice: any, business: any, customer: 
       border-bottom: 2px solid #e2e8f0;
     }
     .items-table th {
-      padding: 12px 16px;
+      padding: 14px 16px;
       text-align: left;
       font-size: 12px;
       font-weight: 600;
       text-transform: uppercase;
       color: #718096;
-      letter-spacing: 0.5px;
     }
-    .items-table th:nth-child(2),
-    .items-table th:nth-child(3),
-    .items-table th:nth-child(4) {
-      text-align: right;
-    }
+    .items-table th:not(:first-child) { text-align: right; }
     .items-table td {
       padding: 16px;
       font-size: 14px;
       border-bottom: 1px solid #e2e8f0;
     }
-    .items-table td:nth-child(2),
-    .items-table td:nth-child(3),
-    .items-table td:nth-child(4) {
-      text-align: right;
-    }
+    .items-table td:not(:first-child) { text-align: right; }
     .totals {
       margin-left: auto;
       width: 300px;
@@ -105,8 +101,9 @@ export async function generateInvoicePdf(invoice: any, business: any, customer: 
     .totals-row {
       display: flex;
       justify-content: space-between;
-      padding: 12px 0;
+      padding: 10px 0;
       font-size: 14px;
+      color: #4a5568;
     }
     .totals-row.total {
       border-top: 2px solid #2d3748;
@@ -119,15 +116,15 @@ export async function generateInvoicePdf(invoice: any, business: any, customer: 
     .payment-info {
       margin-top: 48px;
       padding: 24px;
-      background: #f7fafc;
+      background: #f0fff4;
       border-radius: 8px;
       border-left: 4px solid #48bb78;
     }
     .payment-info h3 {
-      font-size: 14px;
+      font-size: 16px;
       font-weight: 600;
       color: #2d3748;
-      margin-bottom: 8px;
+      margin-bottom: 12px;
     }
     .payment-info p {
       font-size: 14px;
@@ -135,15 +132,16 @@ export async function generateInvoicePdf(invoice: any, business: any, customer: 
       line-height: 1.6;
     }
     .payment-link {
-      color: #4299e1;
+      color: #3182ce;
       text-decoration: underline;
+      word-break: break-all;
     }
     .footer {
       margin-top: 48px;
       padding-top: 24px;
       border-top: 1px solid #e2e8f0;
       text-align: center;
-      font-size: 12px;
+      font-size: 13px;
       color: #a0aec0;
     }
   </style>
@@ -151,14 +149,14 @@ export async function generateInvoicePdf(invoice: any, business: any, customer: 
 <body>
   <div class="header">
     <div>
-      ${business?.logoUrl ? `<img src="${business.logoUrl.startsWith('/') ? 'https://invoicepro-cm-api.onrender.com' + business.logoUrl : business.logoUrl}" class="logo" />` : ''}
+      ${business?.logoUrl ? `<img src="${business.logoUrl.startsWith('/') ? 'https://invoicepro-cm-api.onrender.com' + business.logoUrl : business.logoUrl}" class="logo" />` : '<div style="width:60px;height:60px;background:linear-gradient(135deg,#059669,#10b981);border-radius:12px;"></div>'}
     </div>
     <div class="invoice-title">
       <h1>INVOICE</h1>
       <div class="info">
         <strong>Invoice #:</strong> ${invoice.invoiceNumber}<br/>
-        <strong>Date:</strong> ${new Date(invoice.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}<br/>
-        <strong>Due Date:</strong> ${new Date(invoice.dueDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+        <strong>Date:</strong> ${formatDate(invoice.createdAt)}<br/>
+        <strong>Due:</strong> ${formatDate(invoice.dueDate)}
       </div>
     </div>
   </div>
@@ -197,8 +195,8 @@ export async function generateInvoicePdf(invoice: any, business: any, customer: 
         <tr>
           <td>${item.description}</td>
           <td>${item.quantity}</td>
-          <td>FCFA ${Number(item.unitPrice || 0).toLocaleString()}</td>
-          <td>FCFA ${Number(item.total || 0).toLocaleString()}</td>
+          <td>${money(item.unitPrice)}</td>
+          <td>${money(item.total)}</td>
         </tr>
       `).join('') || ''}
     </tbody>
@@ -207,29 +205,27 @@ export async function generateInvoicePdf(invoice: any, business: any, customer: 
   <div class="totals">
     <div class="totals-row">
       <span>Subtotal</span>
-      <span>FCFA ${Number(invoice.subtotal || 0).toLocaleString()}</span>
+      <span>${money(invoice.subtotal)}</span>
     </div>
     <div class="totals-row">
       <span>VAT</span>
-      <span>FCFA ${Number(invoice.vatAmount || 0).toLocaleString()}</span>
+      <span>${money(invoice.vatAmount || 0)}</span>
     </div>
     <div class="totals-row total">
       <span>Total Due</span>
-      <span>FCFA ${Number(invoice.total || 0).toLocaleString()}</span>
+      <span>${money(invoice.total)}</span>
     </div>
   </div>
 
-  ${!options.hidePaymentLink ? `
   <div class="payment-info">
-    <h3>💳 Payment Information</h3>
+    <h3>💳 Pay Online Securely</h3>
     <p>
-      Pay securely online via MTN MoMo or Orange Money:<br/>
+      Click the link below to pay via MTN MoMo or Orange Money:<br/>
       <a href="https://invoicepro-cm.vercel.app/i/${invoice.publicToken}" class="payment-link">
         https://invoicepro-cm.vercel.app/i/${invoice.publicToken}
       </a>
     </p>
   </div>
-  ` : ''}
 
   <div class="footer">
     <p>Thank you for your business!</p>
@@ -243,7 +239,7 @@ export async function generateInvoicePdf(invoice: any, business: any, customer: 
   const pdf = await page.pdf({
     format: 'A4',
     printBackground: true,
-    margin: { top: '20mm', right: '20mm', bottom: '20mm', left: '20mm' }
+    margin: { top: '15mm', right: '15mm', bottom: '15mm', left: '15mm' }
   });
   
   await browser.close();
