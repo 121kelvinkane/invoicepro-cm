@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { api, setToken } from "../lib/api";
 import { FileText, Mail, Lock, ArrowRight, Eye, EyeOff, CreditCard, WifiOff, User, Check } from "lucide-react";
@@ -162,6 +162,12 @@ export default function Login() {
                 <User size={18} className="mr-2" />
                 Try Demo Account
               </button>
+
+              <div className="mt-4 text-center">
+                <Link to="/forgot-password" className="text-sm text-primary-600 hover:text-primary-700 font-medium">
+                  Forgot your password?
+                </Link>
+              </div>
             </form>
 
             {/* Trust Badges */}
@@ -174,8 +180,7 @@ export default function Login() {
             <div className="mt-6 text-center">
               <p className="text-gray-500">
                 Don't have an account?{" "}
-                <Link to="/forgot-password" className="text-sm text-primary-600 hover:text-primary-700 font-medium">Forgot password?</Link>
-          <Link to="/register" className="text-primary-600 hover:text-primary-700 font-semibold">
+                <Link to="/register" className="text-primary-600 hover:text-primary-700 font-semibold">
                   Create one
                 </Link>
               </p>
