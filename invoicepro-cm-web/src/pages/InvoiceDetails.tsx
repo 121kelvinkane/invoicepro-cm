@@ -193,15 +193,6 @@ export default function InvoiceDetails() {
             <MessageCircle size={18} className="mr-2" />
             Share WhatsApp
           </a>
-          {invoice.status !== "PAID" && (
-            <button
-              onClick={() => setShowPaymentModal(true)}
-              className="flex items-center px-6 py-3 bg-yellow-500 hover:bg-yellow-600 text-white font-bold rounded-lg transition-colors"
-            >
-              <Plus size={18} className="mr-2" />
-              ADD PAYMENT
-            </button>
-          )}
         </div>
 
         {/* Invoice Content */}
