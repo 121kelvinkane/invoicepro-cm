@@ -63,16 +63,35 @@ export default function PublicInvoice() {
     setProcessing(true);
     setPaymentError("");
     try {
-      const res = await api(`/public/invoices/${token}/pay`, {
+      // Step 1: Initiate Campay payment
+      const res = await api(`/public/invoices/${token}/pay-campay`, {
         method: "POST",
-        body: JSON.stringify({ phoneNumber: phone, method }),
+        body: JSON.stringify({ phone }),
       });
-      if (res.success) {
-        setPaymentSuccess(true);
-        setShowModal(false);
-        await loadInvoice();
-      } else {
-        setPaymentError(res.message || "Payment failed");
+      
+      if (res.reference) {
+        setPaymentError("Check your phone for the PIN prompt!");
+        
+        // Step 2: Poll for payment status
+        const pollInterval = setInterval(async () => {
+          try {
+            const statusRes = await api(`/public/invoices/${token}/check-campay?reference=${res.reference}`);
+            if (statusRes.status === "PAID") {
+              setPaymentSuccess(true);
+              setShowModal(false);
+              clearInterval(pollInterval);
+              await loadInvoice();
+            } else if (statusRes.status === "FAILED") {
+              setPaymentError("Payment failed or cancelled");
+              clearInterval(pollInterval);
+            }
+          } catch (err) {
+            console.error("Poll error:", err);
+          }
+        }, 3000);
+        
+        // Stop polling after 5 minutes
+        setTimeout(() => clearInterval(pollInterval), 300000);
       }
     } catch (err: any) {
       setPaymentError(err.message);
