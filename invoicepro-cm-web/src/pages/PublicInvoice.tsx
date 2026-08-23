@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+﻿import { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { api, formatFCFA } from "../lib/api";
 import { CheckCircle, Clock, XCircle, Download, MessageCircle, Lock, PenTool } from "lucide-react";
@@ -63,35 +63,16 @@ export default function PublicInvoice() {
     setProcessing(true);
     setPaymentError("");
     try {
-      // Step 1: Initiate Campay payment
-      const res = await api(`/public/invoices/${token}/pay-campay`, {
+      const res = await api(`/public/invoices/${token}/pay`, {
         method: "POST",
-        body: JSON.stringify({ phone }),
+        body: JSON.stringify({ phoneNumber: phone, method }),
       });
-      
-      if (res.reference) {
-        setPaymentError("Check your phone for the PIN prompt!");
-        
-        // Step 2: Poll for payment status
-        const pollInterval = setInterval(async () => {
-          try {
-            const statusRes = await api(`/public/invoices/${token}/check-campay?reference=${res.reference}`);
-            if (statusRes.status === "PAID") {
-              setPaymentSuccess(true);
-              setShowModal(false);
-              clearInterval(pollInterval);
-              await loadInvoice();
-            } else if (statusRes.status === "FAILED") {
-              setPaymentError("Payment failed or cancelled");
-              clearInterval(pollInterval);
-            }
-          } catch (err) {
-            console.error("Poll error:", err);
-          }
-        }, 3000);
-        
-        // Stop polling after 5 minutes
-        setTimeout(() => clearInterval(pollInterval), 300000);
+      if (res.success) {
+        setPaymentSuccess(true);
+        setShowModal(false);
+        await loadInvoice();
+      } else {
+        setPaymentError(res.message || "Payment failed");
       }
     } catch (err: any) {
       setPaymentError(err.message);
