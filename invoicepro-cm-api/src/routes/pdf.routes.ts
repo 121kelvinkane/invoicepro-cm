@@ -81,12 +81,7 @@ router.get("/public/invoices/:token/pdf", async (req, res) => {
       });
     }
 
-    // 🔒 LOCK PDF UNTIL PAID
-    if (invoice.status !== "PAID" && Number(invoice.balanceDue) > 0) {
-      return res.status(403).json({
-        message: "PDF download is only available after full payment.",
-      });
-    }
+    // Public PDF unlocked so clients can pay via the link inside.
 
     const pdf = await generateInvoicePdf(
       invoice,

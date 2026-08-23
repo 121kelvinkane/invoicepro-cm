@@ -1,259 +1,103 @@
-﻿import PDFDocument from "pdfkit";
-import path from "path";
-import fs from "fs";
+import PDFDocument from "pdfkit";
 
-function money(amount: number) { return `XAF ${Number(amount || 0).toLocaleString()}`; }
+function money(amount: number) { return `FCFA ${Number(amount || 0).toLocaleString()}`; }
 function formatDate(value: any) {
   try { return new Date(value).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }); } catch { return ""; }
 }
 
-// ── Premium palette ──
-const C = {
-  dark: "#0f172a",
-  accent: "#059669",
-  accentSoft: "#34d399",
-  text: "#0f172a",
-  muted: "#64748b",
-  light: "#94a3b8",
-  border: "#e2e8f0",
-  rowAlt: "#f8fafc",
-  white: "#ffffff",
-  red: "#dc2626",
-};
-
-export async function generateInvoicePdf(invoice: any, business: any, customer: any, options: { hidePaymentLink?: boolean } = {}): Promise<Buffer> {
+export async function generateInvoicePdf(invoice: any, business: any, customer: any, options: any = {}) {
   return new Promise((resolve, reject) => {
-    const doc = new PDFDocument({ size: "A4", margin: 0, bufferPages: true });
-    const chunks: Buffer[] = [];
+    const doc = new PDFDocument({ size: "A4", margin: 50 });
+    const chunks: any[] = [];
     doc.on("data", (chunk) => chunks.push(chunk));
     doc.on("end", () => resolve(Buffer.concat(chunks)));
     doc.on("error", reject);
 
-    const pageWidth = doc.page.width;
-    const pageHeight = doc.page.height;
     const margin = 50;
-    const rightEdge = pageWidth - margin;
-    const contentWidth = rightEdge - margin;
-    const isPro = business?.plan === "PRO";
-
-    // ═══ HEADER BAND ═══
-    doc.rect(0, 0, pageWidth, 150).fill(C.dark);
-    doc.rect(0, 150, pageWidth, 4).fill(C.accent);
-
-    let headerX = margin;
+    const pageWidth = doc.page.width;
+    
+    // 1. HEADER & LOGO
     if (business?.logoUrl) {
-      const logoPath = path.join(process.cwd(), business.logoUrl);
-      if (fs.existsSync(logoPath)) {
-        doc.roundedRect(margin, 38, 54, 54, 10).fill(C.white);
-        try { doc.image(logoPath, margin + 5, 43, { fit: [44, 44] }); } catch {}
-        headerX = margin + 70;
-      }
+      try {
+         let logoSrc = business.logoUrl;
+         if (logoSrc.startsWith("/")) logoSrc = `https://invoicepro-cm-api.onrender.com${logoSrc}`;
+         doc.image(logoSrc, margin, margin, { fit: [100, 100] });
+      } catch (e) { console.error("Logo failed", e); }
     }
 
-    const leftColW = rightEdge - 230 - headerX;
-    doc.fillColor(C.white).font("Helvetica-Bold").fontSize(17);
-    doc.text(business?.businessName || "Business", headerX, 44, { width: leftColW });
-    doc.fillColor("#cbd5e1").font("Helvetica").fontSize(8.5);
-    let by = doc.y + 3;
-    if (business?.phone) { doc.text(business.phone, headerX, by, { width: leftColW }); by = doc.y + 2; }
-    if (business?.email) { doc.text(business.email, headerX, by, { width: leftColW }); by = doc.y + 2; }
-    if (business?.address) { doc.text(business.address, headerX, by, { width: leftColW }); }
+    // Invoice Title & Info
+    doc.font("Helvetica-Bold").fontSize(24).fillColor("#1a202c").text("INVOICE", { align: "right" });
+    doc.font("Helvetica").fontSize(10).fillColor("#4a5568")
+       .text(`Invoice #: ${invoice.invoiceNumber}`, { align: "right" })
+       .text(`Date: ${formatDate(invoice.createdAt)}`, { align: "right" })
+       .text(`Due: ${formatDate(invoice.dueDate)}`, { align: "right" });
+    
+    doc.moveDown(4);
+    const yPos = doc.y;
 
-    const rX = rightEdge - 220;
-    doc.fillColor(C.white).font("Helvetica-Bold").fontSize(26);
-    doc.text("INVOICE", rX, 38, { width: 220, align: "right" });
-    doc.fillColor(C.accentSoft).font("Helvetica-Bold").fontSize(11);
-    doc.text(invoice.invoiceNumber, rX, 72, { width: 220, align: "right" });
+    // 2. FROM & TO
+    doc.font("Helvetica-Bold").fontSize(12).fillColor("#2d3748").text("FROM:", margin, yPos);
+    doc.font("Helvetica").fontSize(10).fillColor("#4a5568")
+       .text(business?.businessName || "My Business")
+       .text(business?.address || "")
+       .text(business?.phone || "")
+       .text(business?.email || "");
+    
+    doc.font("Helvetica-Bold").fontSize(12).fillColor("#2d3748").text("BILL TO:", pageWidth / 2, yPos);
+    doc.font("Helvetica").fontSize(10).fillColor("#4a5568")
+       .text(customer?.name || "", pageWidth / 2)
+       .text(customer?.email || "", pageWidth / 2)
+       .text(customer?.phone || "", pageWidth / 2);
 
-    const statusText = String(invoice.status || "DRAFT").toUpperCase();
-    const pillColor = statusText === "PAID" ? C.accent : statusText === "OVERDUE" ? C.red : "#d97706";
-    doc.font("Helvetica-Bold").fontSize(7.5);
-    const pillW = doc.widthOfString(statusText) + 22;
-    doc.roundedRect(rightEdge - pillW, 94, pillW, 17, 8.5).fill(pillColor);
-    doc.fillColor(C.white).text(statusText, rightEdge - pillW, 98.5, { width: pillW, align: "center" });
+    doc.moveDown(4);
 
-    // Watermark (FREE plan)
-    if (!isPro) {
-      doc.save();
-      doc.fillOpacity(0.05).font("Helvetica-Bold").fontSize(46).fillColor(C.light);
-      doc.text("InvoicePro CM", margin, 400, { align: "center", width: contentWidth });
-      doc.restore();
-    }
-
-    let currentY = 190;
-
-    // ═══ BILL TO + DATES ═══
-    doc.font("Helvetica-Bold").fontSize(8).fillColor(C.accent);
-    doc.text("BILLED TO", margin, currentY);
-    doc.font("Helvetica-Bold").fontSize(11.5).fillColor(C.text);
-    doc.text(customer?.name || "Walk-in Customer", margin, currentY + 14, { width: 270 });
-    doc.font("Helvetica").fontSize(8.5).fillColor(C.muted);
-    let cy = doc.y + 2;
-    if (customer?.email) { doc.text(customer.email, margin, cy, { width: 270 }); cy = doc.y + 2; }
-    if (customer?.phone) { doc.text(customer.phone, margin, cy, { width: 270 }); cy = doc.y + 2; }
-    if (customer?.address) { doc.text(customer.address, margin, cy, { width: 270 }); cy = doc.y + 2; }
-
-    const dateBoxX = rightEdge - 200;
-    doc.roundedRect(dateBoxX, currentY - 6, 200, 62, 8).fill(C.rowAlt);
-    doc.font("Helvetica-Bold").fontSize(7).fillColor(C.light);
-    doc.text("ISSUE DATE", dateBoxX + 14, currentY + 6);
-    doc.text("DUE DATE", dateBoxX + 14, currentY + 32);
-    doc.font("Helvetica-Bold").fontSize(9).fillColor(C.text);
-    doc.text(formatDate(invoice.issueDate), dateBoxX + 80, currentY + 4.5, { width: 106 });
-    doc.fillColor(C.red);
-    doc.text(formatDate(invoice.dueDate), dateBoxX + 80, currentY + 30.5, { width: 106 });
-
-    currentY += 96;
-
-    // ═══ TABLE ═══
-    const colDesc = margin;
-    const colQty = margin + 245;
-    const colUnit = margin + 295;
-    const colAmt = rightEdge - 100;
-
-    const drawTableHeader = (y: number) => {
-      doc.roundedRect(margin, y, contentWidth, 26, 5).fill(C.dark);
-      doc.fillColor(C.white).font("Helvetica-Bold").fontSize(7.5);
-      doc.text("DESCRIPTION", colDesc + 12, y + 9.5, { width: 230 });
-      doc.text("QTY", colQty, y + 9.5, { width: 45, align: "right" });
-      doc.text("UNIT PRICE", colUnit, y + 9.5, { width: 90, align: "right" });
-      doc.text("AMOUNT", colAmt, y + 9.5, { width: 88, align: "right" });
-      return y + 30;
-    };
-
-    currentY = drawTableHeader(currentY);
-
-    (invoice.lineItems || []).forEach((item: any, idx: number) => {
-      // Auto-pagination for long invoices
-      if (currentY > pageHeight - 130) {
-        doc.addPage();
-        doc.rect(0, 0, pageWidth, 5).fill(C.accent);
-        doc.font("Helvetica-Bold").fontSize(9).fillColor(C.muted);
-        doc.text(`${invoice.invoiceNumber} — continued`, margin, 22);
-        currentY = 52;
-        currentY = drawTableHeader(currentY);
-      }
-      if (idx % 2 === 0) doc.rect(margin, currentY, contentWidth, 24).fill(C.rowAlt);
-      doc.font("Helvetica").fontSize(8.5).fillColor(C.text);
-      doc.text(item.description || "", colDesc + 12, currentY + 8, { width: 230, lineBreak: false, ellipsis: true });
-      doc.text(String(item.quantity || 0), colQty, currentY + 8, { width: 45, align: "right" });
-      doc.fillColor(C.muted);
-      doc.text(money(item.unitPrice), colUnit, currentY + 8, { width: 90, align: "right" });
-      doc.fillColor(C.text).font("Helvetica-Bold");
-      doc.text(money(item.amount), colAmt, currentY + 8, { width: 88, align: "right" });
-      currentY += 24;
+    // 3. TABLE
+    // Header
+    doc.font("Helvetica-Bold").fontSize(10).fillColor("#fff");
+    doc.rect(margin, doc.y, pageWidth - margin*2, 25).fill("#2d3748");
+    doc.fillColor("#fff")
+       .text("Description", margin + 10, doc.y - 20 + 8)
+       .text("Qty", margin + 300, doc.y - 20 + 8, { width: 50, align: "center" })
+       .text("Price", margin + 350, doc.y - 20 + 8, { width: 80, align: "right" })
+       .text("Total", margin + 430, doc.y - 20 + 8, { width: 80, align: "right" });
+    
+    doc.moveDown();
+    doc.font("Helvetica").fontSize(10).fillColor("#1a202c");
+    
+    // Items
+    invoice.lineItems?.forEach((item: any) => {
+       doc.text(item.description, margin + 10, doc.y, { width: 280 });
+       doc.text(String(item.quantity), margin + 300, doc.y, { width: 50, align: "center" });
+       doc.text(money(item.unitPrice), margin + 350, doc.y, { width: 80, align: "right" });
+       doc.text(money(item.total), margin + 430, doc.y, { width: 80, align: "right" });
+       doc.moveDown();
     });
 
-    currentY += 18;
+    // 4. TOTALS
+    doc.moveDown(2);
+    const totalsX = pageWidth - margin - 200;
+    let totalsY = doc.y;
+    
+    doc.font("Helvetica").fontSize(10)
+       .text("Subtotal:", totalsX, totalsY).text(money(invoice.subtotal), totalsX + 100, totalsY, { width: 100, align: "right" });
+    totalsY += 20;
+    doc.text("VAT:", totalsX, totalsY).text(money(invoice.vatAmount || 0), totalsX + 100, totalsY, { width: 100, align: "right" });
+    totalsY += 25;
+    doc.font("Helvetica-Bold").fontSize(12)
+       .text("TOTAL:", totalsX, totalsY).text(money(invoice.total), totalsX + 100, totalsY, { width: 100, align: "right" });
 
-    if (currentY > pageHeight - 330) {
-      doc.addPage();
-      doc.rect(0, 0, pageWidth, 5).fill(C.accent);
-      currentY = 60;
-    }
-
-    // ═══ NOTES (left) ═══
-    if (invoice.notes || invoice.paymentTerms) {
-      doc.font("Helvetica-Bold").fontSize(7.5).fillColor(C.accent);
-      doc.text("NOTES & PAYMENT TERMS", margin, currentY);
-      doc.font("Helvetica").fontSize(8).fillColor(C.muted);
-      doc.text(String(invoice.notes || invoice.paymentTerms), margin, currentY + 13, { width: 240 });
-    }
-
-    // ═══ TOTALS (right) ═══
-    const totalsX = rightEdge - 240;
-    const addTotal = (label: string, value: string, accent = false) => {
-      if (accent) {
-        doc.roundedRect(totalsX - 12, currentY - 6, 252, 30, 6).fill(C.dark);
-        doc.font("Helvetica-Bold").fontSize(9.5).fillColor(C.white);
-        doc.text(label.toUpperCase(), totalsX, currentY + 3, { width: 130 });
-        doc.fillColor(C.accentSoft);
-        doc.text(value, rightEdge - 112, currentY + 3, { width: 100, align: "right" });
-        currentY += 36;
-        return;
-      }
-      doc.font("Helvetica").fontSize(9).fillColor(C.muted);
-      doc.text(label, totalsX, currentY, { width: 130 });
-      doc.fillColor(C.text);
-      doc.text(value, rightEdge - 112, currentY, { width: 100, align: "right" });
-      doc.moveTo(totalsX, currentY + 15).lineTo(rightEdge, currentY + 15).strokeColor(C.border).lineWidth(0.6).stroke();
-      currentY += 21;
-    };
-
-    addTotal("Subtotal", money(invoice.subtotal));
-    if (Number(invoice.vatAmount || 0) > 0) addTotal(`VAT ${invoice.vatRate ? invoice.vatRate + "%" : ""}`, money(invoice.vatAmount));
-    addTotal("Amount Paid", money(invoice.amountPaid));
-    addTotal("Balance Due", money(invoice.balanceDue), true);
-
-    // Timestamp
-    doc.font("Helvetica").fontSize(7.5).fillColor(C.light);
-    doc.text(
-      `Generated on ${new Date().toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "medium" })}`,
-      totalsX - 12, currentY - 4, { width: 252, align: "right" }
-    );
-    currentY += 34;
-
-    // ═══ SIGNATURES ═══
-    const sigY = pageHeight - 118;
-    if (currentY > sigY - 16) {
-      doc.addPage();
-      doc.rect(0, 0, pageWidth, 5).fill(C.accent);
-    }
-
-    const sigWidth = (contentWidth - 60) / 2;
-    const drawSignature = (label: string, signatureData: string | null | undefined, x: number) => {
-      doc.font("Helvetica-Bold").fontSize(7).fillColor(C.light);
-      doc.text(label.toUpperCase(), x, sigY);
-      if (signatureData) {
-        try {
-          let imgBuffer: Buffer | null = null;
-          if (typeof signatureData === "string" && signatureData.startsWith("data:")) {
-            imgBuffer = Buffer.from(signatureData.replace(/^data:image\/\w+;base64,/, ""), "base64");
-          } else if (typeof signatureData === "string") {
-            let filePath = signatureData;
-            // If it's a full URL, extract just the path (e.g., /uploads/sig-123.png)
-            if (filePath.startsWith("http")) {
-              try { filePath = new URL(filePath).pathname; } catch {}
-            }
-            // Remove leading slash so path.join works perfectly on Windows
-            if (filePath.startsWith("/")) filePath = filePath.substring(1);
-            
-            const p = path.join(process.cwd(), filePath);
-            if (fs.existsSync(p)) imgBuffer = fs.readFileSync(p);
-          }
-          if (imgBuffer) doc.image(imgBuffer, x + 8, sigY + 6, { fit: [sigWidth - 16, 34] });
-        } catch (err) {
-          console.error("Signature load error:", err);
-        }
-      }
-      const lineY = sigY + 46;
-      doc.moveTo(x, lineY).lineTo(x + sigWidth, lineY).strokeColor(C.light).lineWidth(0.8).stroke();
-      doc.font("Helvetica").fontSize(7).fillColor(C.light);
-      doc.text(label, x, lineY + 5, { width: sigWidth, align: "center" });
-    };
-
-    drawSignature("Business Owner", business?.ownerSignatureUrl, margin);
-    drawSignature("Customer", invoice?.customerSignature, margin + sigWidth + 60);
-
-    // ═══ FOOTER (every page) ═══
-    const range = doc.bufferedPageRange();
-    for (let i = range.start; i < range.start + range.count; i++) {
-      doc.switchToPage(i);
-      const fy = pageHeight - 34;
-      doc.rect(margin, fy - 10, contentWidth, 1).fill(C.accent);
-      doc.font("Helvetica").fontSize(7.5).fillColor(C.muted);
-      const appUrl = process.env.APP_URL || "http://localhost:3000";
-      if (!options.hidePaymentLink) doc.text(`View and pay online: ${appUrl}/i/${invoice.publicToken}`, margin, fy, { width: contentWidth - 160, lineBreak: false, ellipsis: true });
-      doc.fillColor(isPro ? C.accent : C.light);
-      doc.text(isPro ? "InvoicePro CM — Pro" : "Generated with InvoicePro CM", rightEdge - 155, fy, { width: 155, align: "right", lineBreak: false, link: `${appUrl}/login` });
-    }
+    // 5. PAYMENT LINK (The Killer Feature)
+    doc.moveDown(4);
+    const linkY = doc.y;
+    doc.rect(margin, linkY, pageWidth - margin*2, 60).fill("#f7fafc").stroke("#cbd5e0");
+    
+    doc.font("Helvetica-Bold").fontSize(14).fillColor("#2d3748")
+       .text("PAY ONLINE SECURELY", margin + 20, linkY + 15);
+    
+    const linkUrl = `https://invoicepro-cm.vercel.app/i/${invoice.publicToken}`;
+    doc.font("Helvetica").fontSize(12).fillColor("#3182ce")
+       .text(linkUrl, margin + 20, linkY + 35, { link: linkUrl, underline: true });
 
     doc.end();
   });
 }
-
-
-
-
-
-
