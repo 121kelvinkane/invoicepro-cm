@@ -1,4 +1,4 @@
-﻿import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { api, formatFCFA } from "../lib/api";
 import { CheckCircle, Clock, XCircle, Download, MessageCircle, Lock, PenTool } from "lucide-react";
