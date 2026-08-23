@@ -86,18 +86,6 @@ export async function generateInvoicePdf(invoice: any, business: any, customer: 
     doc.font("Helvetica-Bold").fontSize(12)
        .text("TOTAL:", totalsX, totalsY).text(money(invoice.total), totalsX + 100, totalsY, { width: 100, align: "right" });
 
-    // 5. PAYMENT LINK (The Killer Feature)
-    doc.moveDown(4);
-    const linkY = doc.y;
-    doc.rect(margin, linkY, pageWidth - margin*2, 60).fill("#f7fafc").stroke("#cbd5e0");
-    
-    doc.font("Helvetica-Bold").fontSize(14).fillColor("#2d3748")
-       .text("PAY ONLINE SECURELY", margin + 20, linkY + 15);
-    
-    const linkUrl = `https://invoicepro-cm.vercel.app/i/${invoice.publicToken}`;
-    doc.font("Helvetica").fontSize(12).fillColor("#3182ce")
-       .text(linkUrl, margin + 20, linkY + 35, { link: linkUrl, underline: true });
-
     doc.end();
   });
 }
