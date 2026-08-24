@@ -257,8 +257,8 @@ export default function InvoicePreview() {
                   <span className="text-white font-bold text-sm tracking-wide">BALANCE DUE</span>
                   <span className="text-emerald-400 font-bold">{money(balanceDue !== undefined && balanceDue !== null ? balanceDue : total)}</span>
                 </div>
-                <p className="text-right text-sm font-bold text-slate-700 mt-3">
-                  Amount in Words: <span className="font-extrabold text-slate-900 uppercase">{amountInWords}</span>
+                <p className="text-right text-base font-bold text-emerald-600 mt-3 whitespace-nowrap">
+                  Amount in Words: <span className="font-extrabold text-emerald-700 uppercase">{amountInWords}</span>
                 </p>
                 <p className="text-right text-[11px] text-slate-400 mt-2">
                   Generated on {new Date().toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "medium" })}
