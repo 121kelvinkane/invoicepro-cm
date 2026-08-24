@@ -3,6 +3,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { api } from "../lib/api";
 import { useToast } from "../components/Toast";
 import { ArrowLeft, Printer, MessageCircle, Mail } from "lucide-react";
+import { jsPDF } from "jspdf";
+import html2canvas from "html2canvas-pro";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 
@@ -44,28 +46,52 @@ export default function InvoicePreview() {
   const money = (amount: number) => `${currency || 'XAF'} ${Number(amount || 0).toLocaleString()}`;
   const fmtDate = (d: any) => new Date(d).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 
+  const numberToWords = (num: number): string => {
+    const ones = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"];
+    const tens = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
+    const two = (n: number): string => (n < 20 ? ones[n] : tens[Math.floor(n / 10)] + (n % 10 ? " " + ones[n % 10] : ""));
+    const three = (n: number): string => {
+      const h = Math.floor(n / 100);
+      const r = n % 100;
+      return (h ? ones[h] + " Hundred" + (r ? " " : "") : "") + (r ? two(r) : "");
+    };
+    if (num === 0) return "Zero";
+    const scales = ["", "Thousand", "Million", "Billion"];
+    let words = "";
+    let i = 0;
+    while (num > 0 && i < scales.length) {
+      const chunk = num % 1000;
+      if (chunk) words = three(chunk) + (scales[i] ? " " + scales[i] : "") + (words ? " " + words : "");
+      num = Math.floor(num / 1000);
+      i++;
+    }
+    return words;
+  };
+
+  const amountInWords = numberToWords(Math.floor(Number(total || 0))) + " " + (currency || "XAF") + " Only";
+
   const handleDownloadPDF = async () => {
-    if (!id || !invoice) return;
+    if (!invoiceRef.current || !invoice) return;
     setDownloading(true);
     try {
-      const token = localStorage.getItem("token") || localStorage.getItem("invoicepro_token");
-      const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:4000/api/v1";
-      const res = await fetch(`${baseUrl}/invoices/${id}/pdf`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.message || "Failed to download PDF");
+      const canvas = await html2canvas(invoiceRef.current, { scale: 2, useCORS: true, backgroundColor: "#ffffff", logging: false });
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("p", "mm", "a4");
+      const pageWidth = 210;
+      const pageHeight = 297;
+      const imgHeight = (canvas.height * pageWidth) / canvas.width;
+      let heightLeft = imgHeight;
+      let position = 0;
+      pdf.addImage(imgData, "PNG", 0, position, pageWidth, imgHeight);
+      heightLeft -= pageHeight;
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, "PNG", 0, position, pageWidth, imgHeight);
+        heightLeft -= pageHeight;
       }
-      const blob = await res.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `Invoice-${invoice.invoiceNumber}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
+      pdf.save("Invoice-" + invoice.invoiceNumber + ".pdf");
+      showToast("PDF downloaded!", "success");
     } catch (error: any) {
       console.error("Error generating PDF", error);
       showToast(error.message || "Error generating PDF.", "error");
@@ -231,6 +257,9 @@ export default function InvoicePreview() {
                   <span className="text-white font-bold text-sm tracking-wide">BALANCE DUE</span>
                   <span className="text-emerald-400 font-bold">{money(balanceDue !== undefined && balanceDue !== null ? balanceDue : total)}</span>
                 </div>
+                <p className="text-right text-[11px] text-slate-500 mt-2">
+                  <span className="font-bold text-slate-600">Amount in Words:</span> {amountInWords}
+                </p>
                 <p className="text-right text-[11px] text-slate-400 mt-2">
                   Generated on {new Date().toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "medium" })}
                 </p>
