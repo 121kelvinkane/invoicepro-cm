@@ -1,4 +1,6 @@
 import { useEffect, useState, useRef } from "react";
+import { jsPDF } from "jspdf";
+import html2canvas from "html2canvas-pro";
 import { useParams } from "react-router-dom";
 import { api, formatFCFA } from "../lib/api";
 import { CheckCircle, Clock, Download, Lock, PenTool } from "lucide-react";
@@ -17,6 +19,8 @@ export default function PublicInvoice() {
   const sigRef = useRef<any>(null);
   const [isSigned, setIsSigned] = useState(false);
   const [signing, setSigning] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+  const invoiceRef = useRef<HTMLDivElement>(null);
 
   async function loadInvoice() {
     try {
@@ -111,6 +115,41 @@ export default function PublicInvoice() {
 
   const amountInWords = numberToWords(Math.floor(Number(invoice.total || 0))) + " " + (invoice.currency || "XAF") + " Only";
 
+
+  const handleDownloadPDF = async () => {
+    if (!invoiceRef.current) return;
+    setDownloading(true);
+    try {
+      const canvas = await html2canvas(invoiceRef.current, {
+        scale: 3,
+        useCORS: true,
+        backgroundColor: "#ffffff",
+        logging: false,
+        windowWidth: 1024,
+      });
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("p", "mm", "a4");
+      const pageWidth = 210;
+      const pageHeight = 297;
+      const imgHeight = (canvas.height * pageWidth) / canvas.width;
+      let heightLeft = imgHeight;
+      let position = 0;
+      pdf.addImage(imgData, "PNG", 0, position, pageWidth, imgHeight);
+      heightLeft -= pageHeight;
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, "PNG", 0, position, pageWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+      pdf.save(`Invoice-${invoice.invoiceNumber}.pdf`);
+    } catch (error) {
+      console.error("PDF Error:", error);
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-10 px-4">
       <div className="max-w-3xl mx-auto">
@@ -137,7 +176,7 @@ export default function PublicInvoice() {
             </div>
           )}
 
-          <div className="bg-white">
+          <div ref={invoiceRef} className="bg-white">
             <div className="bg-slate-900 px-8 py-8">
               <div className="flex justify-between items-start gap-6">
                 <div>
@@ -233,9 +272,8 @@ export default function PublicInvoice() {
           <div className="p-6 border-t border-gray-100">
             {paymentSuccess || invoice.status === "PAID" ? (
               <div className="flex justify-center gap-4">
-                <a href={pdfUrl} download className="flex items-center px-6 py-3 bg-gray-900 hover:bg-gray-800 text-white font-medium rounded-lg transition-colors">
-                  <Download size={18} className="mr-2" /> Download PDF
-                </a>
+                <button onClick={handleDownloadPDF} disabled={downloading} className="flex items-center px-6 py-3 bg-gray-900 hover:bg-gray-800 text-white font-medium rounded-lg transition-colors disabled:opacity-50">
+                  <Download size={18} className="mr-2" /> Download PDF</button>
               </div>
             ) : (
               <div className="flex flex-col gap-6">
