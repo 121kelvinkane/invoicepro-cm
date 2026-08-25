@@ -166,7 +166,7 @@ export default function InvoicePreview() {
         </div>
       </div>
 
-      {/* ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â PREMIUM INVOICE PREVIEW (matches PDF) ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â */}
+      {/* ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢Ãƒâ€šÃ‚Â PREMIUM INVOICE PREVIEW (matches PDF) ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢Ãƒâ€šÃ‚Â */}
       <div className="max-w-4xl mx-auto p-4 my-8">
         <div ref={invoiceRef} className="bg-white shadow-2xl rounded-xl overflow-hidden">
 
@@ -271,14 +271,18 @@ export default function InvoicePreview() {
                   <span className="text-white font-bold text-sm tracking-wide">BALANCE DUE</span>
                   <span className="text-emerald-400 font-bold">{money(balanceDue !== undefined && balanceDue !== null ? balanceDue : total)}</span>
                 </div>
-                                <div className="text-right mt-3 w-full">
-                  <p className="text-[10px] font-bold text-slate-400 tracking-widest uppercase mb-1">Amount in Words</p>
-                  <p className="text-sm font-extrabold text-emerald-700 leading-tight break-words uppercase">{amountInWords}</p>
-                </div>
-                <p className="text-right text-[11px] text-slate-400 mt-2">
-                  Generated on {new Date().toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "medium" })}
-                </p>
               </div>
+            </div>
+
+                        {/* Amount in Words - Full Width Dynamic */}
+            <div className="mt-6 mb-8">
+              <div className="bg-slate-50 rounded-lg px-6 py-4 border border-slate-100">
+                <p className="text-[10px] font-bold text-slate-400 tracking-widest uppercase mb-1">Amount in Words</p>
+                <p className="text-sm font-extrabold text-emerald-700 leading-relaxed uppercase break-words">{amountInWords}</p>
+              </div>
+              <p className="text-right text-[11px] text-slate-400 mt-2">
+                Generated on {new Date().toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "medium" })}
+              </p>
             </div>
 
             {/* Signatures (bottom) */}
@@ -301,7 +305,7 @@ export default function InvoicePreview() {
             <div className="mt-10 pt-4 border-t-2 border-emerald-600">
               <div className="flex justify-between items-center gap-4 flex-wrap">
                 <p className="text-xs text-slate-500 break-all">View and pay online: <a href={paymentLink || "#"} target="_blank" rel="noopener noreferrer" className="text-emerald-600 hover:underline font-medium">{paymentLink || "MISSING LINK"}</a></p>
-                <p onClick={() => navigate("/login")} title="Go to login" className={`text-xs whitespace-nowrap cursor-pointer hover:underline transition-colors ${business?.plan === "PRO" ? "text-emerald-600 font-medium" : "text-slate-400"}`}>{business?.plan === "PRO" ? "InvoicePro CM ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â Pro" : "Generated with InvoicePro CM"}</p>
+                <p onClick={() => navigate("/login")} title="Go to login" className={`text-xs whitespace-nowrap cursor-pointer hover:underline transition-colors ${business?.plan === "PRO" ? "text-emerald-600 font-medium" : "text-slate-400"}`}>{business?.plan === "PRO" ? "InvoicePro CM ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â Pro" : "Generated with InvoicePro CM"}</p>
               </div>
             </div>
           </div>
