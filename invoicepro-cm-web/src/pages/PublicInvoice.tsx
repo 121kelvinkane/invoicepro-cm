@@ -3,6 +3,8 @@ import { useParams } from "react-router-dom";
 import { api, formatFCFA } from "../lib/api";
 import { CheckCircle, Clock, Download, Lock, PenTool } from "lucide-react";
 import SignatureCanvas from "react-signature-canvas";
+import { jsPDF } from "jspdf";
+import html2canvas from "html2canvas-pro";
 
 export default function PublicInvoice() {
   const { token } = useParams();
@@ -15,14 +17,14 @@ export default function PublicInvoice() {
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [paymentError, setPaymentError] = useState("");
   const sigRef = useRef<any>(null);
-
+  const invoiceRef = useRef<HTMLDivElement>(null);
   const [isSigned, setIsSigned] = useState(false);
   const [signing, setSigning] = useState(false);
-
+  const [downloading, setDownloading] = useState(false);
 
   async function loadInvoice() {
     try {
-      const res = await api(`/public/invoices/${token}`);
+      const res = await api("/public/invoices/" + token);
       setInvoice(res.invoice);
       if (res.invoice?.customerSignature) setIsSigned(true);
     } catch (err: any) {
@@ -40,7 +42,7 @@ export default function PublicInvoice() {
     setSigning(true);
     try {
       const dataUrl = sigRef.current.toDataURL("image/png");
-      const res = await api(`/public/invoices/${token}/sign`, {
+      const res = await api("/public/invoices/" + token + "/sign", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ signature: dataUrl })
@@ -63,7 +65,7 @@ export default function PublicInvoice() {
     setProcessing(true);
     setPaymentError("");
     try {
-      const res = await api(`/public/invoices/${token}/pay`, {
+      const res = await api("/public/invoices/" + token + "/pay", {
         method: "POST",
         body: JSON.stringify({ phoneNumber: phone, method }),
       });
@@ -81,6 +83,38 @@ export default function PublicInvoice() {
     }
   }
 
+  const handleDownloadPDF = async () => {
+    if (!invoiceRef.current) return;
+    setDownloading(true);
+    try {
+      const canvas = await html2canvas(invoiceRef.current, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: "#ffffff",
+        logging: false,
+      });
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("p", "mm", "a4");
+      const pageWidth = 210;
+      const pageHeight = 297;
+      const imgHeight = (canvas.height * pageWidth) / canvas.width;
+      let heightLeft = imgHeight;
+      let position = 0;
+      pdf.addImage(imgData, "PNG", 0, position, pageWidth, imgHeight);
+      heightLeft -= pageHeight;
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, "PNG", 0, position, pageWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+      pdf.save("Invoice-" + invoice.invoiceNumber + ".pdf");
+    } catch (error) {
+      console.error("PDF Error:", error);
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   if (error) return <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4"><div className="bg-white border border-red-200 text-red-700 rounded-xl px-6 py-4">{error}</div></div>;
   if (!invoice) return <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div></div>;
@@ -110,8 +144,6 @@ export default function PublicInvoice() {
     return parts.join(", ") || "Zero";
   };
 
-  const pdfUrl = ${import.meta.env.VITE_API_URL || "http://localhost:4000/api/v1"}/public/invoices/${token}/pdf";
-
   const amountInWords = numberToWords(Math.floor(Number(invoice.total || 0))) + " " + (invoice.currency || "XAF") + " Only";
 
   return (
@@ -140,7 +172,7 @@ export default function PublicInvoice() {
             </div>
           )}
 
-          <div className="bg-white">
+          <div ref={invoiceRef} className="bg-white">
             <div className="bg-slate-900 px-8 py-8">
               <div className="flex justify-between items-start gap-6">
                 <div>
@@ -236,7 +268,9 @@ export default function PublicInvoice() {
           <div className="p-6 border-t border-gray-100">
             {paymentSuccess || invoice.status === "PAID" ? (
               <div className="flex justify-center gap-4">
-                <a href={pdfUrl} download className="flex items-center px-6 py-3 bg-gray-900 hover:bg-gray-800 text-white font-medium rounded-lg transition-colors"><Download size={18} className="mr-2" /> Download PDF</a>
+                <button onClick={handleDownloadPDF} disabled={downloading} className="flex items-center px-6 py-3 bg-gray-900 hover:bg-gray-800 text-white font-medium rounded-lg transition-colors disabled:opacity-50">
+                  <Download size={18} className="mr-2" /> {downloading ? "Generating..." : "Download PDF"}
+                </button>
               </div>
             ) : (
               <div className="flex flex-col gap-6">
@@ -263,7 +297,7 @@ export default function PublicInvoice() {
                     <div className="flex items-center gap-3">
                       <CheckCircle className="text-green-600" size={24}/>
                       <div>
-                        <p className="font-bold text-green-800">Signed & Accepted</p>
+                        <p className="font-bold text-green-800">Signed &amp; Accepted</p>
                         <p className="text-xs text-green-600">{invoice.customerSignedAt ? new Date(invoice.customerSignedAt).toLocaleString() : "Just now"}</p>
                       </div>
                     </div>
