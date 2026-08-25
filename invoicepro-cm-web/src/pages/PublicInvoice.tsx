@@ -90,7 +90,8 @@ export default function PublicInvoice() {
     setDownloading(true);
     try {
       const canvas = await html2canvas(invoiceRef.current, {
-        scale: 3,
+        scale: 2,
+        windowWidth: 800,
         useCORS: true,
         backgroundColor: "#ffffff",
         logging: false,
