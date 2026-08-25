@@ -1,4 +1,6 @@
-import { useEffect, useState, useRef, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
+import { jsPDF } from "jspdf";
+import html2canvas from "html2canvas-pro";
 import { useParams } from "react-router-dom";
 import { api, formatFCFA } from "../lib/api";
 import { CheckCircle, Clock, XCircle, Download, MessageCircle, Lock, PenTool } from "lucide-react";
@@ -7,6 +9,8 @@ import SignatureCanvas from "react-signature-canvas";
 export default function PublicInvoice() {
   const { token } = useParams();
   const [invoice, setInvoice] = useState<any>(null);
+  const invoiceRef = useRef<HTMLDivElement>(null);
+  const [downloading, setDownloading] = useState(false);
   const [error, setError] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [method, setMethod] = useState("MTN_MOMO");
@@ -81,7 +85,6 @@ export default function PublicInvoice() {
     }
   }
 
-
   const handleDownloadPDF = async () => {
     if (!invoiceRef.current) return;
     setDownloading(true);
@@ -131,7 +134,7 @@ export default function PublicInvoice() {
           <p className="text-gray-500 mt-1">Invoice {invoice.invoiceNumber}</p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+        <div ref={invoiceRef} className="bg-white rounded-2xl shadow-xl overflow-hidden">
           {paymentSuccess || invoice.status === "PAID" ? (
             <div className="bg-green-50 border-b border-green-200 p-6 text-center">
               <CheckCircle size={48} className="mx-auto text-green-500 mb-3" />
@@ -199,7 +202,7 @@ export default function PublicInvoice() {
             {/* Action Buttons & Signature */}
             {paymentSuccess || invoice.status === "PAID" ? (
               <div className="flex justify-center gap-4">
-                <button onClick={handleDownloadPDF} disabled={downloading} className="flex items-center px-6 py-3 bg-gray-900 hover:bg-gray-800 text-white font-medium rounded-lg transition-colors disabled:opacity-50">
+                <a href={pdfUrl} target="_blank" className="flex items-center px-6 py-3 bg-gray-900 hover:bg-gray-800 text-white font-medium rounded-lg transition-colors">
                   <Download size={18} className="mr-2" /> Download PDF
                 </a>
               </div>
