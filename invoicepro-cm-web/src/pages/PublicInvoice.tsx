@@ -121,6 +121,7 @@ export default function PublicInvoice() {
 
   if (error) return <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4"><div className="bg-white border border-red-200 text-red-700 rounded-xl px-6 py-4">{error}</div></div>;
   if (!invoice) return <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div></div>;
+  const amountInWords = numberToWords(Math.floor(Number(invoice.total || 0))) + " " + (invoice.currency || "XAF") + " Only";
 
   const pdfUrl = `${import.meta.env.VITE_API_URL || "http://localhost:4000/api/v1"}/public/invoices/${token}/pdf`;
 
@@ -148,11 +149,10 @@ export default function PublicInvoice() {
     }
     return parts.join(", ");
   };
-  const amountInWords = numberToWords(Math.floor(Number(invoice.total || 0))) + " " + (invoice.currency || "XAF") + " Only";
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-10 px-4">
-      {/* ═══ HIDDEN PREMIUM INVOICE (for PDF only) ═══ */}
+      {/* â•â•â• HIDDEN PREMIUM INVOICE (for PDF only) â•â•â• */}
       <div className="fixed left-[-9999px] top-0 w-[800px] bg-white">
         <div ref={invoiceRef} className="bg-white">
           {/* Dark Slate Header */}
@@ -279,7 +279,7 @@ export default function PublicInvoice() {
             </div>
           )}
 
-          {/* â•â•â• PREMIUM INVOICE (matches Admin PDF) â•â•â• */}
+          {/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â PREMIUM INVOICE (matches Admin PDF) Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */}
           <div ref={invoiceRef} className="bg-white">
 
             {/* Dark Slate Header */}
