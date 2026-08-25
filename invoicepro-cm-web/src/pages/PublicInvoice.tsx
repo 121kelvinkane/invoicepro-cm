@@ -1,10 +1,10 @@
 import { useEffect, useState, useRef } from "react";
-import { jsPDF } from "jspdf";
-import html2canvas from "html2canvas-pro";
 import { useParams } from "react-router-dom";
 import { api, formatFCFA } from "../lib/api";
 import { CheckCircle, Clock, Download, Lock, PenTool } from "lucide-react";
 import SignatureCanvas from "react-signature-canvas";
+import { jsPDF } from "jspdf";
+import html2canvas from "html2canvas-pro";
 
 export default function PublicInvoice() {
   const { token } = useParams();
@@ -17,10 +17,10 @@ export default function PublicInvoice() {
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [paymentError, setPaymentError] = useState("");
   const sigRef = useRef<any>(null);
+  const invoiceRef = useRef<HTMLDivElement>(null);
   const [isSigned, setIsSigned] = useState(false);
   const [signing, setSigning] = useState(false);
   const [downloading, setDownloading] = useState(false);
-  const invoiceRef = useRef<HTMLDivElement>(null);
 
   async function loadInvoice() {
     try {
@@ -83,10 +83,42 @@ export default function PublicInvoice() {
     }
   }
 
+  const handleDownloadPDF = async () => {
+    if (!invoiceRef.current) return;
+    setDownloading(true);
+    try {
+      const canvas = await html2canvas(invoiceRef.current, {
+        scale: 3,
+        useCORS: true,
+        backgroundColor: "#ffffff",
+        logging: false,
+        windowWidth: 1024,
+      });
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("p", "mm", "a4");
+      const pageWidth = 210;
+      const pageHeight = 297;
+      const imgHeight = (canvas.height * pageWidth) / canvas.width;
+      let heightLeft = imgHeight;
+      let position = 0;
+      pdf.addImage(imgData, "PNG", 0, position, pageWidth, imgHeight);
+      heightLeft -= pageHeight;
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, "PNG", 0, position, pageWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+      pdf.save("Invoice-" + invoice.invoiceNumber + ".pdf");
+    } catch (error) {
+      console.error("PDF Error:", error);
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   if (error) return <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4"><div className="bg-white border border-red-200 text-red-700 rounded-xl px-6 py-4">{error}</div></div>;
   if (!invoice) return <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div></div>;
-  
-  const pdfUrl = `${import.meta.env.VITE_API_URL || "http://localhost:4000/api/v1"}/public/invoices/${token}/pdf`;
 
   const numberToWords = (num: number): string => {
     if (!num) return "Zero";
@@ -114,41 +146,6 @@ export default function PublicInvoice() {
   };
 
   const amountInWords = numberToWords(Math.floor(Number(invoice.total || 0))) + " " + (invoice.currency || "XAF") + " Only";
-
-
-  const handleDownloadPDF = async () => {
-    if (!invoiceRef.current) return;
-    setDownloading(true);
-    try {
-      const canvas = await html2canvas(invoiceRef.current, {
-        scale: 3,
-        useCORS: true,
-        backgroundColor: "#ffffff",
-        logging: false,
-        windowWidth: 1024,
-      });
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF("p", "mm", "a4");
-      const pageWidth = 210;
-      const pageHeight = 297;
-      const imgHeight = (canvas.height * pageWidth) / canvas.width;
-      let heightLeft = imgHeight;
-      let position = 0;
-      pdf.addImage(imgData, "PNG", 0, position, pageWidth, imgHeight);
-      heightLeft -= pageHeight;
-      while (heightLeft > 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, "PNG", 0, position, pageWidth, imgHeight);
-        heightLeft -= pageHeight;
-      }
-      pdf.save(`Invoice-${invoice.invoiceNumber}.pdf`);
-    } catch (error) {
-      console.error("PDF Error:", error);
-    } finally {
-      setDownloading(false);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-10 px-4">
@@ -273,7 +270,8 @@ export default function PublicInvoice() {
             {paymentSuccess || invoice.status === "PAID" ? (
               <div className="flex justify-center gap-4">
                 <button onClick={handleDownloadPDF} disabled={downloading} className="flex items-center px-6 py-3 bg-gray-900 hover:bg-gray-800 text-white font-medium rounded-lg transition-colors disabled:opacity-50">
-                  <Download size={18} className="mr-2" /> Download PDF</button>
+                  <Download size={18} className="mr-2" /> {downloading ? "Generating..." : "Download PDF"}
+                </button>
               </div>
             ) : (
               <div className="flex flex-col gap-6">
@@ -304,7 +302,7 @@ export default function PublicInvoice() {
                         <p className="text-xs text-green-600">{invoice.customerSignedAt ? new Date(invoice.customerSignedAt).toLocaleString() : "Just now"}</p>
                       </div>
                     </div>
-                    {invoice.customerSignature && <img src={`${import.meta.env.VITE_API_URL || "http://localhost:4000"}${invoice.customerSignature}`} alt="Sig" className="h-12 object-contain"/>}
+                    {invoice.customerSignature && <img src={(import.meta.env.VITE_API_URL || "http://localhost:4000") + invoice.customerSignature} alt="Sig" className="h-12 object-contain"/>}
                   </div>
                 )}
 
@@ -335,8 +333,8 @@ export default function PublicInvoice() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Payment Method</label>
                   <div className="grid grid-cols-2 gap-3">
-                    <button type="button" onClick={() => setMethod("MTN_MOMO")} className={`p-3 border rounded-lg text-center font-medium transition-colors ${method === "MTN_MOMO" ? "border-yellow-500 bg-yellow-50 text-yellow-700" : "border-gray-300 text-gray-600"}`}>MTN MoMo</button>
-                    <button type="button" onClick={() => setMethod("ORANGE_MONEY")} className={`p-3 border rounded-lg text-center font-medium transition-colors ${method === "ORANGE_MONEY" ? "border-orange-500 bg-orange-50 text-orange-700" : "border-gray-300 text-gray-600"}`}>Orange Money</button>
+                    <button type="button" onClick={() => setMethod("MTN_MOMO")} className={"p-3 border rounded-lg text-center font-medium transition-colors " + (method === "MTN_MOMO" ? "border-yellow-500 bg-yellow-50 text-yellow-700" : "border-gray-300 text-gray-600")}>MTN MoMo</button>
+                    <button type="button" onClick={() => setMethod("ORANGE_MONEY")} className={"p-3 border rounded-lg text-center font-medium transition-colors " + (method === "ORANGE_MONEY" ? "border-orange-500 bg-orange-50 text-orange-700" : "border-gray-300 text-gray-600")}>Orange Money</button>
                   </div>
                 </div>
                 <div>
