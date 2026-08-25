@@ -22,7 +22,7 @@ router.get("/invoices/:id/pdf", requireAuth, async (req: AuthRequest, res) => {
         customer: true,
         lineItems: true,
         user: {
-          select: {
+          include: {
             businessProfile: true,
           },
         },
@@ -68,7 +68,7 @@ router.get("/public/invoices/:token/pdf", async (req, res) => {
         customer: true,
         lineItems: true,
         user: {
-          select: {
+          include: {
             businessProfile: true,
           },
         },
@@ -81,12 +81,18 @@ router.get("/public/invoices/:token/pdf", async (req, res) => {
       });
     }
 
-    // Ã°Å¸Å¡Â¨ SECURITY GATE: Block download if not paid
+    // ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ SECURITY GATE: Block download if not paid
     if (invoice.status !== "PAID") {
       return res.status(403).json({ 
         message: "Payment required. Please pay the invoice to unlock the PDF download." 
       });
     }
+
+    // DEBUG: Log signature data
+    console.log("=== CLIENT PDF DEBUG ===");
+    console.log("Owner Signature URL:", invoice.user?.businessProfile?.ownerSignatureUrl || "EMPTY");
+    console.log("Customer Signature:", invoice.customerSignature ? "EXISTS" : "EMPTY");
+    console.log("=======================");
 
     const pdf = await generateInvoicePdfAsync(
       invoice,
@@ -137,7 +143,7 @@ router.post("/public/invoices/:token/sign", async (req, res) => {
       }
     });
 
-    // Ã°Å¸Å¡â‚¬ NEW: Log the signature event to the dashboard
+    // ÃƒÂ°Ã…Â¸Ã…Â¡Ã¢â€šÂ¬ NEW: Log the signature event to the dashboard
     await logActivity({
       userId: invoice.userId,
       action: "INVOICE_SIGNED",

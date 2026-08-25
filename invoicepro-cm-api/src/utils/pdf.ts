@@ -60,7 +60,7 @@ async function resolveImagePath(imgPath: string): Promise<string | null> {
   try {
     if (!imgPath) return null;
 
-    // Base64 data URL — write to temp file
+    // Base64 data URL â€” write to temp file
     if (imgPath.startsWith("data:image")) {
       const base64Data = imgPath.replace(/^data:image\/\w+;base64,/, "");
       const tmpPath = path.join(__dirname, "../../uploads/tmp-sig-" + Date.now() + ".png");
@@ -70,7 +70,7 @@ async function resolveImagePath(imgPath: string): Promise<string | null> {
       return tmpPath;
     }
 
-    // Remote URL — download
+    // Remote URL â€” download
     if (imgPath.startsWith("http://") || imgPath.startsWith("https://")) {
       const tmpPath = path.join(__dirname, "../../uploads/tmp-sig-" + Date.now() + ".png");
       const uploadsDir = path.join(__dirname, "../../uploads");
@@ -132,7 +132,7 @@ export async function generateInvoicePdf(
     const margin = 50;
     const contentWidth = pageWidth - margin * 2;
 
-    // ═══ 1. DARK SLATE HEADER ═══
+    // â•â•â• 1. DARK SLATE HEADER â•â•â•
     doc.rect(0, 0, pageWidth, 130).fill(COLORS.slate900);
 
     doc.font("Helvetica-Bold").fontSize(18).fillColor(COLORS.white)
@@ -155,12 +155,12 @@ export async function generateInvoicePdf(
     doc.font("Helvetica-Bold").fontSize(8).fillColor(COLORS.white)
       .text(badgeText, badgeX, badgeY + 5, { width: badgeWidth, align: "center" });
 
-    // ═══ 2. EMERALD STRIPE ═══
+    // â•â•â• 2. EMERALD STRIPE â•â•â•
     doc.rect(0, 130, pageWidth, 4).fill(COLORS.emerald600);
 
     let y = 160;
 
-    // ═══ 3. BILLED TO + DATES (FIXED: dates now visible!) ═══
+    // â•â•â• 3. BILLED TO + DATES (FIXED: dates now visible!) â•â•â•
     doc.font("Helvetica-Bold").fontSize(9).fillColor(COLORS.emerald600)
       .text("BILLED TO", margin, y);
     doc.font("Helvetica-Bold").fontSize(14).fillColor(COLORS.slate900)
@@ -169,12 +169,12 @@ export async function generateInvoicePdf(
     if (customer?.email) doc.text(customer.email, margin, doc.y + 2, { width: contentWidth / 2 });
     if (customer?.phone) doc.text(customer.phone, margin, doc.y + 2, { width: contentWidth / 2 });
 
-    // DATES CARD (right) — FIXED positioning
+    // DATES CARD (right) â€” FIXED positioning
     const cardX = pageWidth - margin - 200;
     const cardY = y - 5;
     doc.roundedRect(cardX, cardY, 200, 70, 6).fill(COLORS.slate50);
 
-    // Issue date row — label left, value right within SAME 180px width
+    // Issue date row â€” label left, value right within SAME 180px width
     doc.font("Helvetica-Bold").fontSize(8).fillColor(COLORS.slate400)
       .text("ISSUE DATE", cardX + 10, cardY + 15, { width: 180, align: "left" });
     doc.font("Helvetica-Bold").fontSize(11).fillColor(COLORS.slate900)
@@ -188,7 +188,7 @@ export async function generateInvoicePdf(
 
     y += 100;
 
-    // ═══ 4. TABLE ═══
+    // â•â•â• 4. TABLE â•â•â•
     const colDesc = margin;
     const colDescW = contentWidth * 0.5;
     const colQty = margin + contentWidth * 0.5;
@@ -217,7 +217,7 @@ export async function generateInvoicePdf(
 
     y += 20;
 
-    // ═══ 5. TOTALS ═══
+    // â•â•â• 5. TOTALS â•â•â•
     const totalsX = pageWidth - margin - 220;
     const totalsW = 220;
 
@@ -245,7 +245,7 @@ export async function generateInvoicePdf(
 
     y += 60;
 
-    // ═══ 6. AMOUNT IN WORDS ═══
+    // â•â•â• 6. AMOUNT IN WORDS â•â•â•
     if (y > doc.page.height - 150) { doc.addPage(); y = 50; }
     doc.roundedRect(margin, y, contentWidth, 50, 6).fill(COLORS.slate50);
     doc.font("Helvetica-Bold").fontSize(8).fillColor(COLORS.slate400)
@@ -256,7 +256,7 @@ export async function generateInvoicePdf(
 
     y += 70;
 
-    // ═══ 7. SIGNATURES (ASYNC — resolved outside promise) ═══
+    // â•â•â• 7. SIGNATURES (ASYNC â€” resolved outside promise) â•â•â•
     // These are placeholders; actual images injected after resolveImagePath completes
     // We'll build the PDF in async wrapper instead
     if (y > doc.page.height - 150) { doc.addPage(); y = 50; }
@@ -291,7 +291,7 @@ export async function generateInvoicePdf(
 
     y += 90;
 
-    // ═══ 8. PAYMENT LINK (admin only) ═══
+    // â•â•â• 8. PAYMENT LINK (admin only) â•â•â•
     if (!options.hidePaymentLink && invoice.publicToken) {
       if (y > doc.page.height - 100) { doc.addPage(); y = 50; }
       const linkY = y;
@@ -303,7 +303,7 @@ export async function generateInvoicePdf(
         .text(linkUrl, margin + 20, linkY + 35, { link: linkUrl, underline: true });
     }
 
-    // ═══ 9. FOOTER ═══
+    // â•â•â• 9. FOOTER â•â•â•
     const footerY = doc.page.height - 40;
     doc.rect(margin, footerY - 10, contentWidth, 2).fill(COLORS.emerald600);
     doc.font("Helvetica").fontSize(9).fillColor(COLORS.slate400)
@@ -347,7 +347,7 @@ export async function generateInvoicePdfAsync(
     const margin = 50;
     const contentWidth = pageWidth - margin * 2;
 
-    // ═══ 1. HEADER ═══
+    // â•â•â• 1. HEADER â•â•â•
     doc.rect(0, 0, pageWidth, 130).fill(COLORS.slate900);
     doc.font("Helvetica-Bold").fontSize(18).fillColor(COLORS.white)
       .text(business?.businessName || "InvoicePro CM", margin, 50, { width: contentWidth / 2 });
@@ -372,7 +372,7 @@ export async function generateInvoicePdfAsync(
     doc.rect(0, 130, pageWidth, 4).fill(COLORS.emerald600);
     let y = 160;
 
-    // ═══ 3. BILLED TO + DATES (FIXED!) ═══
+    // â•â•â• 3. BILLED TO + DATES (FIXED!) â•â•â•
     doc.font("Helvetica-Bold").fontSize(9).fillColor(COLORS.emerald600)
       .text("BILLED TO", margin, y);
     doc.font("Helvetica-Bold").fontSize(14).fillColor(COLORS.slate900)
@@ -397,7 +397,7 @@ export async function generateInvoicePdfAsync(
 
     y += 100;
 
-    // ═══ 4. TABLE ═══
+    // â•â•â• 4. TABLE â•â•â•
     const colDesc = margin, colDescW = contentWidth * 0.5;
     const colQty = margin + contentWidth * 0.5, colQtyW = contentWidth * 0.2;
     const colAmt = margin + contentWidth * 0.7, colAmtW = contentWidth * 0.3;
@@ -423,7 +423,7 @@ export async function generateInvoicePdfAsync(
 
     y += 20;
 
-    // ═══ 5. TOTALS ═══
+    // â•â•â• 5. TOTALS â•â•â•
     const totalsX = pageWidth - margin - 220;
     const totalsW = 220;
 
@@ -451,7 +451,7 @@ export async function generateInvoicePdfAsync(
 
     y += 60;
 
-    // ═══ 6. AMOUNT IN WORDS ═══
+    // â•â•â• 6. AMOUNT IN WORDS â•â•â•
     if (y > doc.page.height - 150) { doc.addPage(); y = 50; }
     doc.roundedRect(margin, y, contentWidth, 50, 6).fill(COLORS.slate50);
     doc.font("Helvetica-Bold").fontSize(8).fillColor(COLORS.slate400)
@@ -462,7 +462,7 @@ export async function generateInvoicePdfAsync(
 
     y += 70;
 
-    // ═══ 7. SIGNATURES WITH IMAGES ═══
+    // â•â•â• 7. SIGNATURES WITH IMAGES â•â•â•
     if (y > doc.page.height - 150) { doc.addPage(); y = 50; }
     const sigW = (contentWidth - 40) / 2;
 
@@ -472,7 +472,7 @@ export async function generateInvoicePdfAsync(
     if (ownerSigPath) {
       try {
         doc.image(ownerSigPath, margin + 20, y + 25, { width: sigW - 40, height: 30 });
-        console.log("✅ Owner signature drawn from:", ownerSigPath);
+        console.log("âœ… Owner signature drawn from:", ownerSigPath);
       } catch (e) { console.error("Owner sig draw failed:", e); }
     }
     doc.moveTo(margin, y + 60).lineTo(margin + sigW, y + 60)
@@ -487,7 +487,7 @@ export async function generateInvoicePdfAsync(
     if (customerSigPath) {
       try {
         doc.image(customerSigPath, custSigX + 20, y + 25, { width: sigW - 40, height: 30 });
-        console.log("✅ Customer signature drawn from:", customerSigPath);
+        console.log("âœ… Customer signature drawn from:", customerSigPath);
       } catch (e) { console.error("Customer sig draw failed:", e); }
     }
     doc.moveTo(custSigX, y + 60).lineTo(custSigX + sigW, y + 60)
@@ -497,7 +497,7 @@ export async function generateInvoicePdfAsync(
 
     y += 90;
 
-    // ═══ 8. PAYMENT LINK (admin only) ═══
+    // â•â•â• 8. PAYMENT LINK (admin only) â•â•â•
     if (!options.hidePaymentLink && invoice.publicToken) {
       if (y > doc.page.height - 100) { doc.addPage(); y = 50; }
       const linkY = y;
@@ -509,7 +509,7 @@ export async function generateInvoicePdfAsync(
         .text(linkUrl, margin + 20, linkY + 35, { link: linkUrl, underline: true });
     }
 
-    // ═══ 9. FOOTER ═══
+    // â•â•â• 9. FOOTER â•â•â•
     const footerY = doc.page.height - 40;
     doc.rect(margin, footerY - 10, contentWidth, 2).fill(COLORS.emerald600);
     doc.font("Helvetica").fontSize(9).fillColor(COLORS.slate400)
