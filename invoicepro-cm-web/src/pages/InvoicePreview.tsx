@@ -60,7 +60,7 @@ export default function InvoicePreview() {
       return (h ? ones[h] + " Hundred" + (r ? " " : "") : "") + (r ? two(r) : "");
     };
     if (num === 0) return "Zero";
-    const scales = ["", "Thousand", "Million", "Billion"];
+    const scales = ["", "Thousand", "Million", "Billion", "Trillion"];
     let words = "";
     let i = 0;
     while (num > 0 && i < scales.length) {
@@ -166,7 +166,7 @@ export default function InvoicePreview() {
         </div>
       </div>
 
-      {/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â PREMIUM INVOICE PREVIEW (matches PDF) Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */}
+      {/* ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â PREMIUM INVOICE PREVIEW (matches PDF) ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â */}
       <div className="max-w-4xl mx-auto p-4 my-8">
         <div ref={invoiceRef} className="bg-white shadow-2xl rounded-xl overflow-hidden">
 
@@ -271,9 +271,10 @@ export default function InvoicePreview() {
                   <span className="text-white font-bold text-sm tracking-wide">BALANCE DUE</span>
                   <span className="text-emerald-400 font-bold">{money(balanceDue !== undefined && balanceDue !== null ? balanceDue : total)}</span>
                 </div>
-                <p className="text-right text-base font-bold text-emerald-600 mt-3 whitespace-nowrap">
-                  Amount in Words: <span className="font-extrabold text-emerald-700 uppercase">{amountInWords}</span>
-                </p>
+                                <div className="text-right mt-3 w-full">
+                  <p className="text-[10px] font-bold text-slate-400 tracking-widest uppercase mb-1">Amount in Words</p>
+                  <p className="text-sm font-extrabold text-emerald-700 leading-tight break-words uppercase">{amountInWords}</p>
+                </div>
                 <p className="text-right text-[11px] text-slate-400 mt-2">
                   Generated on {new Date().toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "medium" })}
                 </p>
@@ -300,7 +301,7 @@ export default function InvoicePreview() {
             <div className="mt-10 pt-4 border-t-2 border-emerald-600">
               <div className="flex justify-between items-center gap-4 flex-wrap">
                 <p className="text-xs text-slate-500 break-all">View and pay online: <a href={paymentLink || "#"} target="_blank" rel="noopener noreferrer" className="text-emerald-600 hover:underline font-medium">{paymentLink || "MISSING LINK"}</a></p>
-                <p onClick={() => navigate("/login")} title="Go to login" className={`text-xs whitespace-nowrap cursor-pointer hover:underline transition-colors ${business?.plan === "PRO" ? "text-emerald-600 font-medium" : "text-slate-400"}`}>{business?.plan === "PRO" ? "InvoicePro CM Ã¢â‚¬â€ Pro" : "Generated with InvoicePro CM"}</p>
+                <p onClick={() => navigate("/login")} title="Go to login" className={`text-xs whitespace-nowrap cursor-pointer hover:underline transition-colors ${business?.plan === "PRO" ? "text-emerald-600 font-medium" : "text-slate-400"}`}>{business?.plan === "PRO" ? "InvoicePro CM ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â Pro" : "Generated with InvoicePro CM"}</p>
               </div>
             </div>
           </div>
