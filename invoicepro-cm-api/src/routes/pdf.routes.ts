@@ -1,4 +1,4 @@
-﻿import { Router } from "express";
+import { Router } from "express";
 import fs from "fs";
 import path from "path";
 import { prisma } from "../lib/prisma";
@@ -81,7 +81,12 @@ router.get("/public/invoices/:token/pdf", async (req, res) => {
       });
     }
 
-    // Public PDF unlocked so clients can pay via the link inside.
+    // 🚨 SECURITY GATE: Block download if not paid
+    if (invoice.status !== "PAID") {
+      return res.status(403).json({ 
+        message: "Payment required. Please pay the invoice to unlock the PDF download." 
+      });
+    }
 
     const pdf = await generateInvoicePdf(
       invoice,
@@ -130,6 +135,15 @@ router.post("/public/invoices/:token/sign", async (req, res) => {
         customerSignature: `/uploads/${filename}`,
         customerSignedAt: new Date()
       }
+    });
+
+    // 🚀 NEW: Log the signature event to the dashboard
+    await logActivity({
+      userId: invoice.userId,
+      action: "INVOICE_SIGNED",
+      entityType: "Invoice",
+      entityId: invoice.id,
+      metadata: JSON.stringify({ invoiceNumber: invoice.invoiceNumber, customerName: invoice.customer?.name })
     });
 
     res.json({ success: true, url: `/uploads/${filename}` });
