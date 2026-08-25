@@ -53,23 +53,25 @@ export default function InvoicePreview() {
   const numberToWords = (num: number): string => {
     const ones = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"];
     const tens = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
-    const two = (n: number): string => (n < 20 ? ones[n] : tens[Math.floor(n / 10)] + (n % 10 ? " " + ones[n % 10] : ""));
+    const two = (n: number): string => (n < 20 ? ones[n] : tens[Math.floor(n / 10)] + (n % 10 ? "-" + ones[n % 10] : ""));
     const three = (n: number): string => {
       const h = Math.floor(n / 100);
       const r = n % 100;
-      return (h ? ones[h] + " Hundred" + (r ? " " : "") : "") + (r ? two(r) : "");
+      if (h && r) return ones[h] + " Hundred and " + two(r);
+      if (h) return ones[h] + " Hundred";
+      return two(r);
     };
     if (num === 0) return "Zero";
     const scales = ["", "Thousand", "Million", "Billion", "Trillion"];
-    let words = "";
+    let parts: string[] = [];
     let i = 0;
     while (num > 0 && i < scales.length) {
       const chunk = num % 1000;
-      if (chunk) words = three(chunk) + (scales[i] ? " " + scales[i] : "") + (words ? " " + words : "");
+      if (chunk) parts.unshift(three(chunk) + (scales[i] ? " " + scales[i] : ""));
       num = Math.floor(num / 1000);
       i++;
     }
-    return words;
+    return parts.join(", ");
   };
 
   const amountInWords = numberToWords(Math.floor(Number(total || 0))) + " " + (currency || "XAF") + " Only";
@@ -166,7 +168,7 @@ export default function InvoicePreview() {
         </div>
       </div>
 
-      {/* ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢Ãƒâ€šÃ‚Â PREMIUM INVOICE PREVIEW (matches PDF) ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢Ãƒâ€šÃ‚Â */}
+      {/* ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â PREMIUM INVOICE PREVIEW (matches PDF) ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â */}
       <div className="max-w-4xl mx-auto p-4 my-8">
         <div ref={invoiceRef} className="bg-white shadow-2xl rounded-xl overflow-hidden">
 
@@ -305,7 +307,7 @@ export default function InvoicePreview() {
             <div className="mt-10 pt-4 border-t-2 border-emerald-600">
               <div className="flex justify-between items-center gap-4 flex-wrap">
                 <p className="text-xs text-slate-500 break-all">View and pay online: <a href={paymentLink || "#"} target="_blank" rel="noopener noreferrer" className="text-emerald-600 hover:underline font-medium">{paymentLink || "MISSING LINK"}</a></p>
-                <p onClick={() => navigate("/login")} title="Go to login" className={`text-xs whitespace-nowrap cursor-pointer hover:underline transition-colors ${business?.plan === "PRO" ? "text-emerald-600 font-medium" : "text-slate-400"}`}>{business?.plan === "PRO" ? "InvoicePro CM ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â Pro" : "Generated with InvoicePro CM"}</p>
+                <p onClick={() => navigate("/login")} title="Go to login" className={`text-xs whitespace-nowrap cursor-pointer hover:underline transition-colors ${business?.plan === "PRO" ? "text-emerald-600 font-medium" : "text-slate-400"}`}>{business?.plan === "PRO" ? "InvoicePro CM ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â Pro" : "Generated with InvoicePro CM"}</p>
               </div>
             </div>
           </div>
