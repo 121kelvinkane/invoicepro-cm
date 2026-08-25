@@ -87,12 +87,29 @@ export default function PublicInvoice() {
     if (!invoiceRef.current) return;
     setDownloading(true);
     try {
-      const canvas = await html2canvas(invoiceRef.current, {
+      const element = invoiceRef.current;
+      const originalWidth = element.style.width;
+      const originalMinWidth = element.style.minWidth;
+      
+      // Force fixed width for consistent capture on all devices
+      element.style.width = "800px";
+      element.style.minWidth = "800px";
+      
+      // Wait for reflow
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,
         backgroundColor: "#ffffff",
         logging: false,
+        windowWidth: 800,
       });
+      
+      // Restore original width
+      element.style.width = originalWidth;
+      element.style.minWidth = originalMinWidth;
+      
       const imgData = canvas.toDataURL("image/png");
       const pdf = new jsPDF("p", "mm", "a4");
       const pageWidth = 210;
