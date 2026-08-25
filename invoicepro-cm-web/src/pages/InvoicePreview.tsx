@@ -1,4 +1,6 @@
 import { useEffect, useState, useRef } from "react";
+import { jsPDF } from "jspdf";
+import html2canvas from "html2canvas-pro";
 import { useParams, useNavigate } from "react-router-dom";
 import { api, getToken, API_URL } from "../lib/api";
 import { useToast } from "../components/Toast";
@@ -73,26 +75,40 @@ export default function InvoicePreview() {
   const amountInWords = numberToWords(Math.floor(Number(total || 0))) + " " + (currency || "XAF") + " Only";
 
   const handleDownloadPDF = async () => {
-    if (!invoice) return;
+    if (!invoiceRef.current) return;
     setDownloading(true);
     try {
-      const res = await fetch(`${API_URL}/invoices/${id}/pdf`, {
-        headers: { Authorization: `Bearer ${getToken()}` },
+      // Scale 3 makes the text crisp (Retina quality)
+      const canvas = await html2canvas(invoiceRef.current, {
+        scale: 3,
+        useCORS: true,
+        backgroundColor: "#ffffff",
+        logging: false,
       });
-      if (!res.ok) throw new Error("Failed to download PDF");
-      const blob = await res.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `Invoice-${invoice.invoiceNumber}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("p", "mm", "a4");
+      const pageWidth = 210;
+      const pageHeight = 297;
+      const imgHeight = (canvas.height * pageWidth) / canvas.width;
+      
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      pdf.addImage(imgData, "PNG", 0, position, pageWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, "PNG", 0, position, pageWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
+      pdf.save(`Invoice-${invoice.invoiceNumber}.pdf`);
       showToast("PDF downloaded!", "success");
     } catch (error: any) {
-      console.error("Error downloading PDF", error);
-      showToast(error.message || "Error downloading PDF.", "error");
+      console.error("Error generating PDF", error);
+      showToast(error.message || "Error generating PDF.", "error");
     } finally {
       setDownloading(false);
     }
@@ -150,7 +166,7 @@ export default function InvoicePreview() {
         </div>
       </div>
 
-      {/* â•â•â• PREMIUM INVOICE PREVIEW (matches PDF) â•â•â• */}
+      {/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â PREMIUM INVOICE PREVIEW (matches PDF) Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */}
       <div className="max-w-4xl mx-auto p-4 my-8">
         <div ref={invoiceRef} className="bg-white shadow-2xl rounded-xl overflow-hidden">
 
@@ -284,7 +300,7 @@ export default function InvoicePreview() {
             <div className="mt-10 pt-4 border-t-2 border-emerald-600">
               <div className="flex justify-between items-center gap-4 flex-wrap">
                 <p className="text-xs text-slate-500 break-all">View and pay online: <a href={paymentLink || "#"} target="_blank" rel="noopener noreferrer" className="text-emerald-600 hover:underline font-medium">{paymentLink || "MISSING LINK"}</a></p>
-                <p onClick={() => navigate("/login")} title="Go to login" className={`text-xs whitespace-nowrap cursor-pointer hover:underline transition-colors ${business?.plan === "PRO" ? "text-emerald-600 font-medium" : "text-slate-400"}`}>{business?.plan === "PRO" ? "InvoicePro CM â€” Pro" : "Generated with InvoicePro CM"}</p>
+                <p onClick={() => navigate("/login")} title="Go to login" className={`text-xs whitespace-nowrap cursor-pointer hover:underline transition-colors ${business?.plan === "PRO" ? "text-emerald-600 font-medium" : "text-slate-400"}`}>{business?.plan === "PRO" ? "InvoicePro CM Ã¢â‚¬â€ Pro" : "Generated with InvoicePro CM"}</p>
               </div>
             </div>
           </div>
