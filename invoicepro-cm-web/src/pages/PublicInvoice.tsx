@@ -202,9 +202,9 @@ export default function PublicInvoice() {
             {/* Action Buttons & Signature */}
             {paymentSuccess || invoice.status === "PAID" ? (
               <div className="flex justify-center gap-4">
-                <a href={pdfUrl} target="_blank" className="flex items-center px-6 py-3 bg-gray-900 hover:bg-gray-800 text-white font-medium rounded-lg transition-colors">
-                  <Download size={18} className="mr-2" /> Download PDF
-                </a>
+                <button onClick={handleDownloadPDF} disabled={downloading} className="flex items-center px-6 py-3 bg-gray-900 hover:bg-gray-800 text-white font-medium rounded-lg transition-colors disabled:opacity-50">
+                  <Download size={18} className="mr-2" /> {downloading ? "Generating..." : "Download PDF"}
+                </button>
               </div>
             ) : (
               <div className="flex flex-col gap-6">
