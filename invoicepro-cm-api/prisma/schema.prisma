@@ -79,12 +79,12 @@ model Invoice {
   issueDate      DateTime
   dueDate        DateTime
   currency       String   @default("XAF")
-  subtotal       Int
+  subtotal Decimal
   vatRate        Float?
-  vatAmount      Int      @default(0)
-  total          Int
-  amountPaid     Int      @default(0)
-  balanceDue     Int
+  vatAmount Decimal      @default(0)
+  total Decimal
+  amountPaid Decimal      @default(0)
+  balanceDue Decimal
   notes          String?
   paymentTerms   String?
   publicToken    String   @unique
@@ -111,8 +111,8 @@ model InvoiceLineItem {
   invoiceId   String
   description String
   quantity    Int
-  unitPrice   Int
-  amount      Int
+  unitPrice Decimal
+  amount Decimal
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -127,7 +127,7 @@ model Payment {
   providerReference String?
   method            String
   status            String   @default("PENDING")
-  amount            Int
+  amount Decimal
   currency          String   @default("XAF")
   isManual          Boolean  @default(false)
   manualNote        String?
