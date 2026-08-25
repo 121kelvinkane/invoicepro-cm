@@ -1,12 +1,12 @@
 import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { api } from "../lib/api";
+import { api, getToken, API_URL } from "../lib/api";
 import { useToast } from "../components/Toast";
 import { ArrowLeft, Printer, MessageCircle, Mail } from "lucide-react";
-import { jsPDF } from "jspdf";
-import html2canvas from "html2canvas-pro";
-import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
+
+
+
+
 
 export default function InvoicePreview() {
   const { id } = useParams();
@@ -41,7 +41,9 @@ export default function InvoicePreview() {
 
   const paymentLink = `${window.location.origin}/i/${publicToken}`;
   const whatsappMessage = `Hello ${customer?.name || 'Customer'},%0A%0APlease find your invoice *${invoiceNumber}* for *${currency || 'XAF'} ${(total || 0).toLocaleString()}*.%0A%0AView and pay securely here: ${paymentLink}%0A%0AThank you for your business!`;
-  const whatsappUrl = `https://wa.me/?text=${whatsappMessage}`;
+  const rawPhone = customer?.phone || "";
+  const cleanPhone = rawPhone.replace(/[^\d+]/g, "");
+  const whatsappUrl = cleanPhone.startsWith("+") ? `https://wa.me/${cleanPhone.substring(1)}?text=${whatsappMessage}` : `https://wa.me/?text=${whatsappMessage}`;
 
   const money = (amount: number) => `${currency || 'XAF'} ${Number(amount || 0).toLocaleString()}`;
   const fmtDate = (d: any) => new Date(d).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
@@ -71,30 +73,26 @@ export default function InvoicePreview() {
   const amountInWords = numberToWords(Math.floor(Number(total || 0))) + " " + (currency || "XAF") + " Only";
 
   const handleDownloadPDF = async () => {
-    if (!invoiceRef.current || !invoice) return;
+    if (!invoice) return;
     setDownloading(true);
     try {
-      const canvas = await html2canvas(invoiceRef.current, { scale: 2, useCORS: true, backgroundColor: "#ffffff", logging: false });
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF("p", "mm", "a4");
-      const pageWidth = 210;
-      const pageHeight = 297;
-      const imgHeight = (canvas.height * pageWidth) / canvas.width;
-      let heightLeft = imgHeight;
-      let position = 0;
-      pdf.addImage(imgData, "PNG", 0, position, pageWidth, imgHeight);
-      heightLeft -= pageHeight;
-      while (heightLeft > 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, "PNG", 0, position, pageWidth, imgHeight);
-        heightLeft -= pageHeight;
-      }
-      pdf.save("Invoice-" + invoice.invoiceNumber + ".pdf");
+      const res = await fetch(`${API_URL}/invoices/${id}/pdf`, {
+        headers: { Authorization: `Bearer ${getToken()}` },
+      });
+      if (!res.ok) throw new Error("Failed to download PDF");
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Invoice-${invoice.invoiceNumber}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
       showToast("PDF downloaded!", "success");
     } catch (error: any) {
-      console.error("Error generating PDF", error);
-      showToast(error.message || "Error generating PDF.", "error");
+      console.error("Error downloading PDF", error);
+      showToast(error.message || "Error downloading PDF.", "error");
     } finally {
       setDownloading(false);
     }
@@ -152,7 +150,7 @@ export default function InvoicePreview() {
         </div>
       </div>
 
-      {/* ═══ PREMIUM INVOICE PREVIEW (matches PDF) ═══ */}
+      {/* â•â•â• PREMIUM INVOICE PREVIEW (matches PDF) â•â•â• */}
       <div className="max-w-4xl mx-auto p-4 my-8">
         <div ref={invoiceRef} className="bg-white shadow-2xl rounded-xl overflow-hidden">
 
@@ -286,7 +284,7 @@ export default function InvoicePreview() {
             <div className="mt-10 pt-4 border-t-2 border-emerald-600">
               <div className="flex justify-between items-center gap-4 flex-wrap">
                 <p className="text-xs text-slate-500 break-all">View and pay online: <a href={paymentLink || "#"} target="_blank" rel="noopener noreferrer" className="text-emerald-600 hover:underline font-medium">{paymentLink || "MISSING LINK"}</a></p>
-                <p onClick={() => navigate("/login")} title="Go to login" className={`text-xs whitespace-nowrap cursor-pointer hover:underline transition-colors ${business?.plan === "PRO" ? "text-emerald-600 font-medium" : "text-slate-400"}`}>{business?.plan === "PRO" ? "InvoicePro CM — Pro" : "Generated with InvoicePro CM"}</p>
+                <p onClick={() => navigate("/login")} title="Go to login" className={`text-xs whitespace-nowrap cursor-pointer hover:underline transition-colors ${business?.plan === "PRO" ? "text-emerald-600 font-medium" : "text-slate-400"}`}>{business?.plan === "PRO" ? "InvoicePro CM â€” Pro" : "Generated with InvoicePro CM"}</p>
               </div>
             </div>
           </div>
