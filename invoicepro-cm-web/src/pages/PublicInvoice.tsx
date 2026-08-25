@@ -1,14 +1,12 @@
 import { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { api, formatFCFA } from "../lib/api";
-import { CheckCircle, Clock, XCircle, Download, MessageCircle, Lock, PenTool } from "lucide-react";
+import { CheckCircle, Clock, Download, Lock, PenTool } from "lucide-react";
 import SignatureCanvas from "react-signature-canvas";
 
 export default function PublicInvoice() {
   const { token } = useParams();
   const [invoice, setInvoice] = useState<any>(null);
-  const invoiceRef = useRef<HTMLDivElement>(null);
-  const [downloading, setDownloading] = useState(false);
   const [error, setError] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [method, setMethod] = useState("MTN_MOMO");
@@ -83,13 +81,14 @@ export default function PublicInvoice() {
     }
   }
 
-      if (error) return <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4"><div className="bg-white border border-red-200 text-red-700 rounded-xl px-6 py-4">{error}</div></div>;
+  if (error) return <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4"><div className="bg-white border border-red-200 text-red-700 rounded-xl px-6 py-4">{error}</div></div>;
   if (!invoice) return <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div></div>;
   
   const pdfUrl = `${import.meta.env.VITE_API_URL || "http://localhost:4000/api/v1"}/public/invoices/${token}/pdf`;
 
-
+  // Helper: Number to Words
   const numberToWords = (num: number): string => {
+    if (!num) return "Zero";
     const ones = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"];
     const tens = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
     const two = (n: number): string => (n < 20 ? ones[n] : tens[Math.floor(n / 10)] + (n % 10 ? "-" + ones[n % 10] : ""));
@@ -98,126 +97,26 @@ export default function PublicInvoice() {
       const r = n % 100;
       if (h && r) return ones[h] + " Hundred and " + two(r);
       if (h) return ones[h] + " Hundred";
-      return two(r);
+      return r ? two(r) : "";
     };
-    if (num === 0) return "Zero";
     const scales = ["", "Thousand", "Million", "Billion", "Trillion"];
     let parts: string[] = [];
     let i = 0;
-    while (num > 0 && i < scales.length) {
-      const chunk = num % 1000;
+    let n = Math.floor(Math.abs(num));
+    while (n > 0 && i < scales.length) {
+      const chunk = n % 1000;
       if (chunk) parts.unshift(three(chunk) + (scales[i] ? " " + scales[i] : ""));
-      num = Math.floor(num / 1000);
+      n = Math.floor(n / 1000);
       i++;
     }
-    return parts.join(", ");
+    return parts.join(", ") || "Zero";
   };
+
+  // FIX: Define amountInWords safely
+  const amountInWords = numberToWords(Math.floor(Number(invoice.total || 0))) + " " + (invoice.currency || "XAF") + " Only";
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-10 px-4">
-      {/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â HIDDEN PREMIUM INVOICE (for PDF only) Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */}
-      <div className="fixed left-[-9999px] top-0 w-[800px] bg-white">
-        <div ref={invoiceRef} className="bg-white">
-          {/* Dark Slate Header */}
-          <div className="bg-slate-900 px-10 py-10">
-            <div className="flex justify-between items-start gap-6">
-              <div>
-                <h2 className="text-xl font-bold text-white">{invoice.business?.businessName || "InvoicePro CM"}</h2>
-                {invoice.business?.phone && <p className="text-sm text-slate-300 mt-1">{invoice.business.phone}</p>}
-                {invoice.business?.email && <p className="text-sm text-slate-300">{invoice.business.email}</p>}
-                {invoice.business?.address && <p className="text-sm text-slate-300">{invoice.business.address}</p>}
-              </div>
-              <div className="text-right">
-                <h1 className="text-3xl font-bold text-white tracking-wide">INVOICE</h1>
-                <p className="text-emerald-400 font-bold mt-1">{invoice.invoiceNumber}</p>
-                <span className="inline-block mt-2 px-3 py-1 rounded-full text-[10px] font-bold tracking-widest text-white bg-emerald-600">{invoice.status}</span>
-              </div>
-            </div>
-          </div>
-          <div className="h-1 bg-emerald-600"></div>
-
-          <div className="px-10 py-10">
-            {/* Billed To + Dates */}
-            <div className="flex justify-between items-start gap-8 mb-12 flex-wrap">
-              <div>
-                <h3 className="text-xs font-bold text-emerald-600 tracking-widest mb-2">BILLED TO</h3>
-                <p className="font-bold text-slate-900 text-lg">{invoice.customer?.name || "Walk-in Customer"}</p>
-                {invoice.customer?.email && <p className="text-sm text-slate-500">{invoice.customer.email}</p>}
-                {invoice.customer?.phone && <p className="text-sm text-slate-500">{invoice.customer.phone}</p>}
-              </div>
-              <div className="bg-slate-50 rounded-lg px-6 py-4 w-72">
-                <div className="flex justify-between items-center mb-3">
-                  <span className="text-[10px] font-bold text-slate-400 tracking-widest">ISSUE DATE</span>
-                  <span className="text-sm font-bold text-slate-900">{new Date(invoice.issueDate).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-[10px] font-bold text-slate-400 tracking-widest">DUE DATE</span>
-                  <span className="text-sm font-bold text-red-600">{new Date(invoice.dueDate).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Premium Table */}
-            <table className="w-full mb-10">
-              <thead>
-                <tr className="bg-slate-900 text-white">
-                  <th className="text-left py-3 px-4 text-[10px] font-bold tracking-widest rounded-l-md">DESCRIPTION</th>
-                  <th className="text-right py-3 px-2 text-[10px] font-bold tracking-widest w-14">QTY</th>
-                  <th className="text-right py-3 px-4 text-[10px] font-bold tracking-widest rounded-r-md w-28">AMOUNT</th>
-                </tr>
-              </thead>
-              <tbody>
-                {invoice.lineItems?.map((item: any, idx: number) => (
-                  <tr key={item.id} className={idx % 2 === 0 ? "bg-slate-50" : ""}>
-                    <td className="py-3 px-4 text-sm text-slate-900">{item.description}</td>
-                    <td className="py-3 px-2 text-sm text-slate-900 text-right">{item.quantity}</td>
-                    <td className="py-3 px-4 text-sm text-slate-900 font-bold text-right">{formatFCFA(item.amount)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-
-            {/* Totals */}
-            <div className="flex justify-end mb-8">
-              <div className="w-72">
-                <div className="flex justify-between py-1.5 text-sm border-b border-slate-200"><span className="text-slate-500">Subtotal</span><span className="text-slate-900">{formatFCFA(invoice.subtotal)}</span></div>
-                {Number(invoice.vatAmount || 0) > 0 && <div className="flex justify-between py-1.5 text-sm border-b border-slate-200"><span className="text-slate-500">VAT</span><span className="text-slate-900">{formatFCFA(invoice.vatAmount)}</span></div>}
-                <div className="flex justify-between py-1.5 text-sm border-b border-slate-200"><span className="text-slate-500">Amount Paid</span><span className="text-emerald-600">{formatFCFA(invoice.amountPaid)}</span></div>
-                <div className="bg-slate-900 rounded-md px-4 py-3 flex justify-between items-center mt-2">
-                  <span className="text-white font-bold text-sm tracking-wide">BALANCE DUE</span>
-                  <span className="text-emerald-400 font-bold">{formatFCFA(invoice.balanceDue)}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Amount in Words */}
-            <div className="mb-8">
-              <div className="bg-slate-50 rounded-lg px-6 py-4 border border-slate-100">
-                <p className="text-[10px] font-bold text-slate-400 tracking-widest uppercase mb-1">Amount in Words</p>
-                <p className="text-sm font-extrabold text-emerald-700 leading-relaxed uppercase break-words">{amountInWords}</p>
-              </div>
-            </div>
-
-            {/* Signature Lines */}
-            <div className="flex justify-between gap-16 mt-14">
-              <div className="flex-1">
-                <p className="text-[10px] font-bold text-slate-400 tracking-widest mb-14">BUSINESS OWNER</p>
-                <div className="border-t border-slate-300 pt-1.5"><p className="text-[10px] text-slate-400 text-center">Authorized Signature</p></div>
-              </div>
-              <div className="flex-1">
-                <p className="text-[10px] font-bold text-slate-400 tracking-widest mb-14">CUSTOMER</p>
-                <div className="border-t border-slate-300 pt-1.5"><p className="text-[10px] text-slate-400 text-center">Customer Signature</p></div>
-              </div>
-            </div>
-
-            {/* Footer */}
-            <div className="mt-10 pt-4 border-t-2 border-emerald-600">
-              <p className="text-xs text-slate-400 text-center">Generated with InvoicePro CM</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <div className="max-w-3xl mx-auto">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-primary-500 to-primary-700 rounded-2xl mb-4">
@@ -228,6 +127,7 @@ export default function PublicInvoice() {
         </div>
 
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+          {/* Status Banner */}
           {paymentSuccess || invoice.status === "PAID" ? (
             <div className="bg-green-50 border-b border-green-200 p-6 text-center">
               <CheckCircle size={48} className="mx-auto text-green-500 mb-3" />
@@ -242,10 +142,8 @@ export default function PublicInvoice() {
             </div>
           )}
 
-          {/* ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â PREMIUM INVOICE (matches Admin PDF) ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â */}
-          <div ref={invoiceRef} className="bg-white">
-
-            {/* Dark Slate Header */}
+          {/* Premium Invoice Content */}
+          <div className="bg-white">
             <div className="bg-slate-900 px-8 py-8">
               <div className="flex justify-between items-start gap-6">
                 <div>
@@ -264,7 +162,6 @@ export default function PublicInvoice() {
             <div className="h-1 bg-emerald-600"></div>
 
             <div className="px-8 py-8">
-              {/* Billed To + Dates */}
               <div className="flex justify-between items-start gap-8 mb-10 flex-wrap">
                 <div>
                   <h3 className="text-xs font-bold text-emerald-600 tracking-widest mb-2">BILLED TO</h3>
@@ -284,7 +181,6 @@ export default function PublicInvoice() {
                 </div>
               </div>
 
-              {/* Premium Table */}
               <table className="w-full mb-10">
                 <thead>
                   <tr className="bg-slate-900 text-white">
@@ -304,7 +200,6 @@ export default function PublicInvoice() {
                 </tbody>
               </table>
 
-              {/* Totals */}
               <div className="flex justify-end mb-6">
                 <div className="w-72">
                   <div className="flex justify-between py-1.5 text-sm border-b border-slate-200"><span className="text-slate-500">Subtotal</span><span className="text-slate-900">{formatFCFA(invoice.subtotal)}</span></div>
@@ -317,7 +212,6 @@ export default function PublicInvoice() {
                 </div>
               </div>
 
-              {/* Amount in Words */}
               <div className="mb-8">
                 <div className="bg-slate-50 rounded-lg px-6 py-4 border border-slate-100">
                   <p className="text-[10px] font-bold text-slate-400 tracking-widest uppercase mb-1">Amount in Words</p>
@@ -325,7 +219,6 @@ export default function PublicInvoice() {
                 </div>
               </div>
 
-              {/* Signature Lines */}
               <div className="flex justify-between gap-16 mt-10">
                 <div className="flex-1">
                   <p className="text-[10px] font-bold text-slate-400 tracking-widest mb-14">BUSINESS OWNER</p>
@@ -337,13 +230,14 @@ export default function PublicInvoice() {
                 </div>
               </div>
 
-              {/* Footer */}
               <div className="mt-8 pt-4 border-t-2 border-emerald-600">
                 <p className="text-xs text-slate-400 text-center">Generated with InvoicePro CM</p>
               </div>
             </div>
           </div>
-            {/* Action Buttons & Signature */}
+
+          {/* Action Buttons */}
+          <div className="p-6 border-t border-gray-100">
             {paymentSuccess || invoice.status === "PAID" ? (
               <div className="flex justify-center gap-4">
                 <a href={pdfUrl} download className="flex items-center px-6 py-3 bg-gray-900 hover:bg-gray-800 text-white font-medium rounded-lg transition-colors">
@@ -352,8 +246,6 @@ export default function PublicInvoice() {
               </div>
             ) : (
               <div className="flex flex-col gap-6">
-                
-                {/* Signature Section */}
                 {!isSigned ? (
                   <div className="bg-gray-50 p-6 rounded-xl border border-gray-200">
                     <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2"><PenTool size={18}/> Sign to Accept</h3>
@@ -385,7 +277,6 @@ export default function PublicInvoice() {
                   </div>
                 )}
 
-                {/* Pay Button (Only visible if signed) */}
                 {isSigned && (
                   <button
                     onClick={() => setShowModal(true)}
@@ -395,7 +286,6 @@ export default function PublicInvoice() {
                   </button>
                 )}
 
-                {/* Locked Download */}
                 <div className="flex justify-center items-center gap-2 text-gray-400 bg-gray-50 py-3 rounded-lg border border-gray-200">
                   <Lock size={16} />
                   <span className="text-sm font-medium">PDF download unlocks after payment</span>
