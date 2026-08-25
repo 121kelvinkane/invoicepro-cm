@@ -85,13 +85,12 @@ export default function PublicInvoice() {
     }
   }
 
-  const handleDownloadPDF = async () => {
+    const handleDownloadPDF = async () => {
     if (!invoiceRef.current) return;
     setDownloading(true);
     try {
       const canvas = await html2canvas(invoiceRef.current, {
-        scale: 2,
-        windowWidth: 800,
+        scale: 3,
         useCORS: true,
         backgroundColor: "#ffffff",
         logging: false,
