@@ -14,8 +14,6 @@ export default function PublicInvoice() {
   const [processing, setProcessing] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [paymentError, setPaymentError] = useState("");
-  
-  // Signature states
   const sigRef = useRef<any>(null);
   const [isSigned, setIsSigned] = useState(false);
   const [signing, setSigning] = useState(false);
@@ -86,7 +84,6 @@ export default function PublicInvoice() {
   
   const pdfUrl = `${import.meta.env.VITE_API_URL || "http://localhost:4000/api/v1"}/public/invoices/${token}/pdf`;
 
-  // Helper: Number to Words
   const numberToWords = (num: number): string => {
     if (!num) return "Zero";
     const ones = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"];
@@ -112,7 +109,6 @@ export default function PublicInvoice() {
     return parts.join(", ") || "Zero";
   };
 
-  // FIX: Define amountInWords safely
   const amountInWords = numberToWords(Math.floor(Number(invoice.total || 0))) + " " + (invoice.currency || "XAF") + " Only";
 
   return (
@@ -127,7 +123,6 @@ export default function PublicInvoice() {
         </div>
 
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
-          {/* Status Banner */}
           {paymentSuccess || invoice.status === "PAID" ? (
             <div className="bg-green-50 border-b border-green-200 p-6 text-center">
               <CheckCircle size={48} className="mx-auto text-green-500 mb-3" />
@@ -142,7 +137,6 @@ export default function PublicInvoice() {
             </div>
           )}
 
-          {/* Premium Invoice Content */}
           <div className="bg-white">
             <div className="bg-slate-900 px-8 py-8">
               <div className="flex justify-between items-start gap-6">
@@ -236,7 +230,6 @@ export default function PublicInvoice() {
             </div>
           </div>
 
-          {/* Action Buttons */}
           <div className="p-6 border-t border-gray-100">
             {paymentSuccess || invoice.status === "PAID" ? (
               <div className="flex justify-center gap-4">
@@ -295,7 +288,6 @@ export default function PublicInvoice() {
           </div>
         </div>
 
-        {/* Payment Modal */}
         {showModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4 animate-fade-in">
             <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-xl animate-slide-up">
