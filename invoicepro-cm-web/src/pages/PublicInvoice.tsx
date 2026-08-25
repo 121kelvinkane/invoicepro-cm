@@ -85,7 +85,7 @@ export default function PublicInvoice() {
     }
   }
 
-    const handleDownloadPDF = async () => {
+      const handleDownloadPDF = async () => {
     if (!invoiceRef.current) return;
     setDownloading(true);
     try {
@@ -94,6 +94,7 @@ export default function PublicInvoice() {
         useCORS: true,
         backgroundColor: "#ffffff",
         logging: false,
+        windowWidth: 1024,
       });
       const imgData = canvas.toDataURL("image/png");
       const pdf = new jsPDF("p", "mm", "a4");
