@@ -1,6 +1,4 @@
 import { useEffect, useState, useRef } from "react";
-import { jsPDF } from "jspdf";
-import html2canvas from "html2canvas-pro";
 import { useParams } from "react-router-dom";
 import { api, formatFCFA } from "../lib/api";
 import { CheckCircle, Clock, XCircle, Download, MessageCircle, Lock, PenTool } from "lucide-react";
@@ -85,44 +83,13 @@ export default function PublicInvoice() {
     }
   }
 
-      const handleDownloadPDF = async () => {
-    if (!invoiceRef.current) return;
-    setDownloading(true);
-    try {
-      const canvas = await html2canvas(invoiceRef.current, {
-        scale: 3,
-        useCORS: true,
-        backgroundColor: "#ffffff",
-        logging: false,
-        windowWidth: 1024,
-      });
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF("p", "mm", "a4");
-      const pageWidth = 210;
-      const pageHeight = 297;
-      const imgHeight = (canvas.height * pageWidth) / canvas.width;
-      let heightLeft = imgHeight;
-      let position = 0;
-      pdf.addImage(imgData, "PNG", 0, position, pageWidth, imgHeight);
-      heightLeft -= pageHeight;
-      while (heightLeft > 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, "PNG", 0, position, pageWidth, imgHeight);
-        heightLeft -= pageHeight;
-      }
-      pdf.save(`Invoice-${invoice?.invoiceNumber}.pdf`);
-    } catch (error) {
-      console.error("PDF Error:", error);
-    } finally {
-      setDownloading(false);
-    }
-  };
-
-  if (error) return <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4"><div className="bg-white border border-red-200 text-red-700 rounded-xl px-6 py-4">{error}</div></div>;
+      if (error) return <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4"><div className="bg-white border border-red-200 text-red-700 rounded-xl px-6 py-4">{error}</div></div>;
   if (!invoice) return <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div></div>;
-
+  
   const pdfUrl = `${import.meta.env.VITE_API_URL || "http://localhost:4000/api/v1"}/public/invoices/${token}/pdf`;
+
+
+  const numberToWords = (num: number): string => {
     const ones = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"];
     const tens = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
     const two = (n: number): string => (n < 20 ? ones[n] : tens[Math.floor(n / 10)] + (n % 10 ? "-" + ones[n % 10] : ""));
@@ -156,14 +123,14 @@ export default function PublicInvoice() {
             <div className="flex justify-between items-start gap-6">
               <div>
                 <h2 className="text-xl font-bold text-white">{invoice.business?.businessName || "InvoicePro CM"}</h2>
-                {invoice.business?.phone && <p className="text-sm text-slate-300 mt-1">{invoice?.business.phone}</p>}
-                {invoice.business?.email && <p className="text-sm text-slate-300">{invoice?.business.email}</p>}
-                {invoice.business?.address && <p className="text-sm text-slate-300">{invoice?.business.address}</p>}
+                {invoice.business?.phone && <p className="text-sm text-slate-300 mt-1">{invoice.business.phone}</p>}
+                {invoice.business?.email && <p className="text-sm text-slate-300">{invoice.business.email}</p>}
+                {invoice.business?.address && <p className="text-sm text-slate-300">{invoice.business.address}</p>}
               </div>
               <div className="text-right">
                 <h1 className="text-3xl font-bold text-white tracking-wide">INVOICE</h1>
-                <p className="text-emerald-400 font-bold mt-1">{invoice?.invoiceNumber}</p>
-                <span className="inline-block mt-2 px-3 py-1 rounded-full text-[10px] font-bold tracking-widest text-white bg-emerald-600">{invoice?.status}</span>
+                <p className="text-emerald-400 font-bold mt-1">{invoice.invoiceNumber}</p>
+                <span className="inline-block mt-2 px-3 py-1 rounded-full text-[10px] font-bold tracking-widest text-white bg-emerald-600">{invoice.status}</span>
               </div>
             </div>
           </div>
@@ -174,9 +141,9 @@ export default function PublicInvoice() {
             <div className="flex justify-between items-start gap-8 mb-12 flex-wrap">
               <div>
                 <h3 className="text-xs font-bold text-emerald-600 tracking-widest mb-2">BILLED TO</h3>
-                <p className="font-bold text-slate-900 text-lg">{invoice?.customer?.name || "Walk-in Customer"}</p>
-                {invoice?.customer?.email && <p className="text-sm text-slate-500">{invoice?.customer.email}</p>}
-                {invoice?.customer?.phone && <p className="text-sm text-slate-500">{invoice?.customer.phone}</p>}
+                <p className="font-bold text-slate-900 text-lg">{invoice.customer?.name || "Walk-in Customer"}</p>
+                {invoice.customer?.email && <p className="text-sm text-slate-500">{invoice.customer.email}</p>}
+                {invoice.customer?.phone && <p className="text-sm text-slate-500">{invoice.customer.phone}</p>}
               </div>
               <div className="bg-slate-50 rounded-lg px-6 py-4 w-72">
                 <div className="flex justify-between items-center mb-3">
@@ -200,7 +167,7 @@ export default function PublicInvoice() {
                 </tr>
               </thead>
               <tbody>
-                {invoice?.lineItems?.map((item: any, idx: number) => (
+                {invoice.lineItems?.map((item: any, idx: number) => (
                   <tr key={item.id} className={idx % 2 === 0 ? "bg-slate-50" : ""}>
                     <td className="py-3 px-4 text-sm text-slate-900">{item.description}</td>
                     <td className="py-3 px-2 text-sm text-slate-900 text-right">{item.quantity}</td>
@@ -257,7 +224,7 @@ export default function PublicInvoice() {
             <span className="text-white text-2xl font-bold">IP</span>
           </div>
           <h1 className="text-2xl font-bold text-gray-900">{invoice.business?.businessName || "Invoice"}</h1>
-          <p className="text-gray-500 mt-1">Invoice {invoice?.invoiceNumber}</p>
+          <p className="text-gray-500 mt-1">Invoice {invoice.invoiceNumber}</p>
         </div>
 
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
@@ -283,14 +250,14 @@ export default function PublicInvoice() {
               <div className="flex justify-between items-start gap-6">
                 <div>
                   <h2 className="text-lg font-bold text-white">{invoice.business?.businessName || "InvoicePro CM"}</h2>
-                  {invoice.business?.phone && <p className="text-sm text-slate-300 mt-1">{invoice?.business.phone}</p>}
-                  {invoice.business?.email && <p className="text-sm text-slate-300">{invoice?.business.email}</p>}
-                  {invoice.business?.address && <p className="text-sm text-slate-300">{invoice?.business.address}</p>}
+                  {invoice.business?.phone && <p className="text-sm text-slate-300 mt-1">{invoice.business.phone}</p>}
+                  {invoice.business?.email && <p className="text-sm text-slate-300">{invoice.business.email}</p>}
+                  {invoice.business?.address && <p className="text-sm text-slate-300">{invoice.business.address}</p>}
                 </div>
                 <div className="text-right">
                   <h1 className="text-2xl font-bold text-white tracking-wide">INVOICE</h1>
-                  <p className="text-emerald-400 font-bold mt-1">{invoice?.invoiceNumber}</p>
-                  <span className="inline-block mt-2 px-3 py-1 rounded-full text-[10px] font-bold tracking-widest text-white bg-emerald-600">{invoice?.status}</span>
+                  <p className="text-emerald-400 font-bold mt-1">{invoice.invoiceNumber}</p>
+                  <span className="inline-block mt-2 px-3 py-1 rounded-full text-[10px] font-bold tracking-widest text-white bg-emerald-600">{invoice.status}</span>
                 </div>
               </div>
             </div>
@@ -301,9 +268,9 @@ export default function PublicInvoice() {
               <div className="flex justify-between items-start gap-8 mb-10 flex-wrap">
                 <div>
                   <h3 className="text-xs font-bold text-emerald-600 tracking-widest mb-2">BILLED TO</h3>
-                  <p className="font-bold text-slate-900 text-lg">{invoice?.customer?.name || "Walk-in Customer"}</p>
-                  {invoice?.customer?.email && <p className="text-sm text-slate-500">{invoice?.customer.email}</p>}
-                  {invoice?.customer?.phone && <p className="text-sm text-slate-500">{invoice?.customer.phone}</p>}
+                  <p className="font-bold text-slate-900 text-lg">{invoice.customer?.name || "Walk-in Customer"}</p>
+                  {invoice.customer?.email && <p className="text-sm text-slate-500">{invoice.customer.email}</p>}
+                  {invoice.customer?.phone && <p className="text-sm text-slate-500">{invoice.customer.phone}</p>}
                 </div>
                 <div className="bg-slate-50 rounded-lg px-6 py-4 w-64">
                   <div className="flex justify-between items-center mb-3">
@@ -327,7 +294,7 @@ export default function PublicInvoice() {
                   </tr>
                 </thead>
                 <tbody>
-                  {invoice?.lineItems?.map((item: any, idx: number) => (
+                  {invoice.lineItems?.map((item: any, idx: number) => (
                     <tr key={item.id} className={idx % 2 === 0 ? "bg-slate-50" : ""}>
                       <td className="py-3 px-4 text-sm text-slate-900">{item.description}</td>
                       <td className="py-3 px-2 text-sm text-slate-900 text-right">{item.quantity}</td>
@@ -379,9 +346,9 @@ export default function PublicInvoice() {
             {/* Action Buttons & Signature */}
             {paymentSuccess || invoice.status === "PAID" ? (
               <div className="flex justify-center gap-4">
-                <button onClick={handleDownloadPDF} disabled={downloading} className="flex items-center px-6 py-3 bg-gray-900 hover:bg-gray-800 text-white font-medium rounded-lg transition-colors disabled:opacity-50">
-                  <Download size={18} className="mr-2" /> {downloading ? "Generating..." : "Download PDF"}
-                </button>
+                <a href={pdfUrl} download className="flex items-center px-6 py-3 bg-gray-900 hover:bg-gray-800 text-white font-medium rounded-lg transition-colors">
+                  <Download size={18} className="mr-2" /> Download PDF
+                </a>
               </div>
             ) : (
               <div className="flex flex-col gap-6">
@@ -411,10 +378,10 @@ export default function PublicInvoice() {
                       <CheckCircle className="text-green-600" size={24}/>
                       <div>
                         <p className="font-bold text-green-800">Signed & Accepted</p>
-                        <p className="text-xs text-green-600">{invoice?.customerSignedAt ? new Date(invoice.customerSignedAt).toLocaleString() : "Just now"}</p>
+                        <p className="text-xs text-green-600">{invoice.customerSignedAt ? new Date(invoice.customerSignedAt).toLocaleString() : "Just now"}</p>
                       </div>
                     </div>
-                    {invoice?.customerSignature && <img src={`${import.meta.env.VITE_API_URL || "http://localhost:4000"}${invoice?.customerSignature}`} alt="Sig" className="h-12 object-contain"/>}
+                    {invoice.customerSignature && <img src={`${import.meta.env.VITE_API_URL || "http://localhost:4000"}${invoice.customerSignature}`} alt="Sig" className="h-12 object-contain"/>}
                   </div>
                 )}
 
