@@ -124,6 +124,32 @@ export default function PublicInvoice() {
 
   const pdfUrl = `${import.meta.env.VITE_API_URL || "http://localhost:4000/api/v1"}/public/invoices/${token}/pdf`;
 
+
+  const numberToWords = (num: number): string => {
+    const ones = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"];
+    const tens = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
+    const two = (n: number): string => (n < 20 ? ones[n] : tens[Math.floor(n / 10)] + (n % 10 ? "-" + ones[n % 10] : ""));
+    const three = (n: number): string => {
+      const h = Math.floor(n / 100);
+      const r = n % 100;
+      if (h && r) return ones[h] + " Hundred and " + two(r);
+      if (h) return ones[h] + " Hundred";
+      return two(r);
+    };
+    if (num === 0) return "Zero";
+    const scales = ["", "Thousand", "Million", "Billion", "Trillion"];
+    let parts: string[] = [];
+    let i = 0;
+    while (num > 0 && i < scales.length) {
+      const chunk = num % 1000;
+      if (chunk) parts.unshift(three(chunk) + (scales[i] ? " " + scales[i] : ""));
+      num = Math.floor(num / 1000);
+      i++;
+    }
+    return parts.join(", ");
+  };
+  const amountInWords = numberToWords(Math.floor(Number(invoice.total || 0))) + " " + (invoice.currency || "XAF") + " Only";
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-10 px-4">
       <div className="max-w-3xl mx-auto">
@@ -135,7 +161,7 @@ export default function PublicInvoice() {
           <p className="text-gray-500 mt-1">Invoice {invoice.invoiceNumber}</p>
         </div>
 
-        <div ref={invoiceRef} className="bg-white rounded-2xl shadow-xl overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
           {paymentSuccess || invoice.status === "PAID" ? (
             <div className="bg-green-50 border-b border-green-200 p-6 text-center">
               <CheckCircle size={48} className="mx-auto text-green-500 mb-3" />
@@ -150,56 +176,107 @@ export default function PublicInvoice() {
             </div>
           )}
 
-          <div className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              <div>
-                <h3 className="text-sm font-medium text-gray-500 mb-2">Billed To</h3>
-                <p className="font-semibold text-gray-900">{invoice.customer?.name}</p>
-                {invoice.customer?.email && <p className="text-gray-500 text-sm">{invoice.customer.email}</p>}
-                {invoice.customer?.phone && <p className="text-gray-500 text-sm">{invoice.customer.phone}</p>}
-              </div>
-              <div className="text-right">
-                <div className="mb-4">
-                  <h3 className="text-sm font-medium text-gray-500 mb-1">Issue Date</h3>
-                  <p className="font-medium text-gray-900">{new Date(invoice.issueDate).toLocaleDateString()}</p>
-                </div>
+          {/* ═══ PREMIUM INVOICE (matches Admin PDF) ═══ */}
+          <div ref={invoiceRef} className="bg-white">
+
+            {/* Dark Slate Header */}
+            <div className="bg-slate-900 px-8 py-8">
+              <div className="flex justify-between items-start gap-6">
                 <div>
-                  <h3 className="text-sm font-medium text-gray-500 mb-1">Due Date</h3>
-                  <p className="font-medium text-gray-900">{new Date(invoice.dueDate).toLocaleDateString()}</p>
+                  <h2 className="text-lg font-bold text-white">{invoice.business?.businessName || "InvoicePro CM"}</h2>
+                  {invoice.business?.phone && <p className="text-sm text-slate-300 mt-1">{invoice.business.phone}</p>}
+                  {invoice.business?.email && <p className="text-sm text-slate-300">{invoice.business.email}</p>}
+                  {invoice.business?.address && <p className="text-sm text-slate-300">{invoice.business.address}</p>}
+                </div>
+                <div className="text-right">
+                  <h1 className="text-2xl font-bold text-white tracking-wide">INVOICE</h1>
+                  <p className="text-emerald-400 font-bold mt-1">{invoice.invoiceNumber}</p>
+                  <span className="inline-block mt-2 px-3 py-1 rounded-full text-[10px] font-bold tracking-widest text-white bg-emerald-600">{invoice.status}</span>
                 </div>
               </div>
             </div>
+            <div className="h-1 bg-emerald-600"></div>
 
-            <div className="border border-gray-200 rounded-xl overflow-hidden mb-6">
-              <table className="w-full">
+            <div className="px-8 py-8">
+              {/* Billed To + Dates */}
+              <div className="flex justify-between items-start gap-8 mb-10 flex-wrap">
+                <div>
+                  <h3 className="text-xs font-bold text-emerald-600 tracking-widest mb-2">BILLED TO</h3>
+                  <p className="font-bold text-slate-900 text-lg">{invoice.customer?.name || "Walk-in Customer"}</p>
+                  {invoice.customer?.email && <p className="text-sm text-slate-500">{invoice.customer.email}</p>}
+                  {invoice.customer?.phone && <p className="text-sm text-slate-500">{invoice.customer.phone}</p>}
+                </div>
+                <div className="bg-slate-50 rounded-lg px-6 py-4 w-64">
+                  <div className="flex justify-between items-center mb-3">
+                    <span className="text-[10px] font-bold text-slate-400 tracking-widest">ISSUE DATE</span>
+                    <span className="text-sm font-bold text-slate-900">{new Date(invoice.issueDate).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-[10px] font-bold text-slate-400 tracking-widest">DUE DATE</span>
+                    <span className="text-sm font-bold text-red-600">{new Date(invoice.dueDate).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Premium Table */}
+              <table className="w-full mb-10">
                 <thead>
-                  <tr className="bg-gray-50 text-left">
-                    <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Description</th>
-                    <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-right">Qty</th>
-                    <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-right">Amount</th>
+                  <tr className="bg-slate-900 text-white">
+                    <th className="text-left py-3 px-4 text-[10px] font-bold tracking-widest rounded-l-md">DESCRIPTION</th>
+                    <th className="text-right py-3 px-2 text-[10px] font-bold tracking-widest w-14">QTY</th>
+                    <th className="text-right py-3 px-4 text-[10px] font-bold tracking-widest rounded-r-md w-28">AMOUNT</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {invoice.lineItems?.map((item: any) => (
-                    <tr key={item.id}>
-                      <td className="px-4 py-3 text-gray-900">{item.description}</td>
-                      <td className="px-4 py-3 text-right text-gray-500">{item.quantity}</td>
-                      <td className="px-4 py-3 text-right font-medium text-gray-900">{formatFCFA(item.amount)}</td>
+                <tbody>
+                  {invoice.lineItems?.map((item: any, idx: number) => (
+                    <tr key={item.id} className={idx % 2 === 0 ? "bg-slate-50" : ""}>
+                      <td className="py-3 px-4 text-sm text-slate-900">{item.description}</td>
+                      <td className="py-3 px-2 text-sm text-slate-900 text-right">{item.quantity}</td>
+                      <td className="py-3 px-4 text-sm text-slate-900 font-bold text-right">{formatFCFA(item.amount)}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-            </div>
 
-            <div className="flex justify-end mb-8">
-              <div className="w-full max-w-sm space-y-2">
-                <div className="flex justify-between text-sm text-gray-500"><span>Subtotal</span><span>{formatFCFA(invoice.subtotal)}</span></div>
-                <div className="flex justify-between text-sm text-gray-500"><span>VAT</span><span>{formatFCFA(invoice.vatAmount)}</span></div>
-                <div className="flex justify-between text-sm text-gray-500"><span>Amount Paid</span><span className="text-green-600">{formatFCFA(invoice.amountPaid)}</span></div>
-                <div className="flex justify-between text-lg font-bold text-gray-900 border-t pt-2"><span>Balance Due</span><span>{formatFCFA(invoice.balanceDue)}</span></div>
+              {/* Totals */}
+              <div className="flex justify-end mb-6">
+                <div className="w-72">
+                  <div className="flex justify-between py-1.5 text-sm border-b border-slate-200"><span className="text-slate-500">Subtotal</span><span className="text-slate-900">{formatFCFA(invoice.subtotal)}</span></div>
+                  {Number(invoice.vatAmount || 0) > 0 && <div className="flex justify-between py-1.5 text-sm border-b border-slate-200"><span className="text-slate-500">VAT</span><span className="text-slate-900">{formatFCFA(invoice.vatAmount)}</span></div>}
+                  <div className="flex justify-between py-1.5 text-sm border-b border-slate-200"><span className="text-slate-500">Amount Paid</span><span className="text-emerald-600">{formatFCFA(invoice.amountPaid)}</span></div>
+                  <div className="bg-slate-900 rounded-md px-4 py-3 flex justify-between items-center mt-2">
+                    <span className="text-white font-bold text-sm tracking-wide">BALANCE DUE</span>
+                    <span className="text-emerald-400 font-bold">{formatFCFA(invoice.balanceDue)}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Amount in Words */}
+              <div className="mb-8">
+                <div className="bg-slate-50 rounded-lg px-6 py-4 border border-slate-100">
+                  <p className="text-[10px] font-bold text-slate-400 tracking-widest uppercase mb-1">Amount in Words</p>
+                  <p className="text-sm font-extrabold text-emerald-700 leading-relaxed uppercase break-words">{amountInWords}</p>
+                </div>
+              </div>
+
+              {/* Signature Lines */}
+              <div className="flex justify-between gap-16 mt-10">
+                <div className="flex-1">
+                  <p className="text-[10px] font-bold text-slate-400 tracking-widest mb-14">BUSINESS OWNER</p>
+                  <div className="border-t border-slate-300 pt-1.5"><p className="text-[10px] text-slate-400 text-center">Authorized Signature</p></div>
+                </div>
+                <div className="flex-1">
+                  <p className="text-[10px] font-bold text-slate-400 tracking-widest mb-14">CUSTOMER</p>
+                  <div className="border-t border-slate-300 pt-1.5"><p className="text-[10px] text-slate-400 text-center">Customer Signature</p></div>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="mt-8 pt-4 border-t-2 border-emerald-600">
+                <p className="text-xs text-slate-400 text-center">Generated with InvoicePro CM</p>
               </div>
             </div>
-
+          </div>
             {/* Action Buttons & Signature */}
             {paymentSuccess || invoice.status === "PAID" ? (
               <div className="flex justify-center gap-4">
