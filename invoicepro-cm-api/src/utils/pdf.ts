@@ -2,7 +2,7 @@ import PDFDocument from "pdfkit";
 import fs from "fs";
 import path from "path";
 
-// ─── HELPERS ───
+// â”€â”€â”€ HELPERS â”€â”€â”€
 function money(amount: any) {
   return `FCFA ${Number(amount || 0).toLocaleString()}`;
 }
@@ -17,7 +17,7 @@ function formatDate(value: any) {
   }
 }
 
-// ─── NUMBER TO WORDS ───
+// â”€â”€â”€ NUMBER TO WORDS â”€â”€â”€
 function numberToWords(num: number): string {
   if (!num || num === 0) return "Zero";
   const ones = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"];
@@ -43,7 +43,7 @@ function numberToWords(num: number): string {
   return parts.join(", ") || "Zero";
 }
 
-// ─── COLORS ───
+// â”€â”€â”€ COLORS â”€â”€â”€
 const COLORS = {
   slate900: "#0f172a",
   slate500: "#64748b",
@@ -57,7 +57,7 @@ const COLORS = {
   white: "#ffffff",
 };
 
-// ─── MAIN GENERATOR ───
+// â”€â”€â”€ MAIN GENERATOR â”€â”€â”€
 export async function generateInvoicePdf(
   invoice: any,
   business: any,
@@ -75,9 +75,9 @@ export async function generateInvoicePdf(
     const margin = 50;
     const contentWidth = pageWidth - margin * 2;
 
-    // ═══════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     // 1. DARK SLATE HEADER
-    // ═══════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     doc.rect(0, 0, pageWidth, 130).fill(COLORS.slate900);
 
     // Business info (left)
@@ -103,16 +103,16 @@ export async function generateInvoicePdf(
     doc.font("Helvetica-Bold").fontSize(8).fillColor(COLORS.white)
       .text(badgeText, badgeX, badgeY + 5, { width: badgeWidth, align: "center" });
 
-    // ═══════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     // 2. EMERALD ACCENT STRIPE
-    // ═══════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     doc.rect(0, 130, pageWidth, 4).fill(COLORS.emerald600);
 
     let y = 160;
 
-    // ═══════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     // 3. BILLED TO + DATES
-    // ═══════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     // Billed To (left)
     doc.font("Helvetica-Bold").fontSize(9).fillColor(COLORS.emerald600)
       .text("BILLED TO", margin, y);
@@ -139,9 +139,9 @@ export async function generateInvoicePdf(
 
     y += 100;
 
-    // ═══════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     // 4. PREMIUM TABLE
-    // ═══════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     // Table header
     const colDesc = margin;
     const colDescW = contentWidth * 0.5;
@@ -182,9 +182,9 @@ export async function generateInvoicePdf(
 
     y += 20;
 
-    // ═══════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     // 5. TOTALS
-    // ═══════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     const totalsX = pageWidth - margin - 220;
     const totalsW = 220;
 
@@ -215,9 +215,9 @@ export async function generateInvoicePdf(
 
     y += 60;
 
-    // ═══════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     // 6. AMOUNT IN WORDS
-    // ═══════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     if (y > doc.page.height - 150) { doc.addPage(); y = 50; }
 
     doc.roundedRect(margin, y, contentWidth, 50, 6).fill(COLORS.slate50);
@@ -233,9 +233,9 @@ export async function generateInvoicePdf(
 
     y += 70;
 
-    // ═══════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     // 7. SIGNATURE LINES
-    // ═══════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     if (y > doc.page.height - 150) { doc.addPage(); y = 50; }
 
     const sigW = (contentWidth - 40) / 2;
@@ -243,6 +243,35 @@ export async function generateInvoicePdf(
     // Business owner (left)
     doc.font("Helvetica-Bold").fontSize(8).fillColor(COLORS.slate400)
       .text("BUSINESS OWNER", margin, y);
+
+    // Draw owner signature if available
+    if (business?.ownerSignatureUrl) {
+      try {
+        let ownerSigPath = business.ownerSignatureUrl;
+        if (ownerSigPath.startsWith("/uploads/")) {
+          ownerSigPath = path.join(__dirname, "../../", ownerSigPath);
+        }
+        if (ownerSigPath.startsWith("http")) {
+          // Download remote image for Render deployment
+          const https = ownerSigPath.startsWith("https") ? require("https") : require("http");
+          const tmpPath = path.join(__dirname, "../../uploads/tmp-owner-sig.png");
+          await new Promise<void>((res2, rej2) => {
+            const file = fs.createWriteStream(tmpPath);
+            https.get(ownerSigPath, (response: any) => {
+              response.pipe(file);
+              file.on("finish", () => { file.close(); res2(); });
+            }).on("error", rej2);
+          });
+          ownerSigPath = tmpPath;
+        }
+        if (fs.existsSync(ownerSigPath)) {
+          doc.image(ownerSigPath, margin + 20, y + 25, { width: sigW - 40, height: 30 });
+        }
+      } catch (e) {
+        console.error("Owner signature image failed:", e);
+      }
+    }
+
     doc.moveTo(margin, y + 60).lineTo(margin + sigW, y + 60)
       .strokeColor(COLORS.slate400).lineWidth(0.5).stroke();
     doc.font("Helvetica").fontSize(8).fillColor(COLORS.slate400)
@@ -260,11 +289,23 @@ export async function generateInvoicePdf(
         if (sigPath.startsWith("/uploads/")) {
           sigPath = path.join(__dirname, "../../", sigPath);
         }
+        if (sigPath.startsWith("http")) {
+          const https = sigPath.startsWith("https") ? require("https") : require("http");
+          const tmpPath = path.join(__dirname, "../../uploads/tmp-cust-sig.png");
+          await new Promise<void>((res2, rej2) => {
+            const file = fs.createWriteStream(tmpPath);
+            https.get(sigPath, (response: any) => {
+              response.pipe(file);
+              file.on("finish", () => { file.close(); res2(); });
+            }).on("error", rej2);
+          });
+          sigPath = tmpPath;
+        }
         if (fs.existsSync(sigPath)) {
-          doc.image(sigPath, custSigX, y + 30, { width: sigW, height: 30 });
+          doc.image(sigPath, custSigX + 20, y + 25, { width: sigW - 40, height: 30 });
         }
       } catch (e) {
-        console.error("Signature image failed:", e);
+        console.error("Customer signature image failed:", e);
       }
     }
 
@@ -275,9 +316,9 @@ export async function generateInvoicePdf(
 
     y += 90;
 
-    // ═══════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     // 8. PAYMENT LINK (only for admin PDFs, not client)
-    // ═══════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     if (!options.hidePaymentLink && invoice.publicToken) {
       if (y > doc.page.height - 100) { doc.addPage(); y = 50; }
 
@@ -290,9 +331,9 @@ export async function generateInvoicePdf(
         .text(linkUrl, margin + 20, linkY + 35, { link: linkUrl, underline: true });
     }
 
-    // ═══════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     // 9. FOOTER
-    // ═══════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     const footerY = doc.page.height - 40;
     doc.rect(margin, footerY - 10, contentWidth, 2).fill(COLORS.emerald600);
     doc.font("Helvetica").fontSize(9).fillColor(COLORS.slate400)
