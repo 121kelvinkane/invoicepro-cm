@@ -1,4 +1,4 @@
-﻿import { Router } from "express";
+import { Router } from "express";
 import { randomUUID } from "crypto";
 import { prisma } from "../lib/prisma";
 import { AuthRequest, requireAuth } from "../middleware/auth";
@@ -357,7 +357,7 @@ router.put("/:id", async (req: AuthRequest, res) => {
         vatRate: totals.vatRate,
         vatAmount: totals.vatAmount,
         total: totals.total,
-        balanceDue: totals.total - invoice.amountPaid,
+        balanceDue: Number(totals.total) - Number(invoice.amountPaid),
         notes,
         paymentTerms,
         lineItems: {
@@ -552,7 +552,7 @@ router.post("/:id/manual-payment", async (req: AuthRequest, res) => {
 
     const { method, amount, paidAt, reference, note } = parsed.data;
 
-    if (amount > invoice.balanceDue) {
+    if (amount > Number(invoice.balanceDue)) {
       return res.status(400).json({
         message: "Amount cannot exceed balance due",
       });
@@ -573,8 +573,8 @@ router.post("/:id/manual-payment", async (req: AuthRequest, res) => {
       },
     });
 
-    const newAmountPaid = invoice.amountPaid + amount;
-    const newBalanceDue = invoice.total - newAmountPaid;
+    const newAmountPaid = Number(invoice.amountPaid) + amount;
+    const newBalanceDue = Number(invoice.total) - newAmountPaid;
 
     const updatedInvoice = await prisma.invoice.update({
       where: { id: invoiceId },

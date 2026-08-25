@@ -81,7 +81,7 @@ router.get("/public/invoices/:token/pdf", async (req, res) => {
       });
     }
 
-    // 🚨 SECURITY GATE: Block download if not paid
+    // ðŸš¨ SECURITY GATE: Block download if not paid
     if (invoice.status !== "PAID") {
       return res.status(403).json({ 
         message: "Payment required. Please pay the invoice to unlock the PDF download." 
@@ -118,7 +118,7 @@ router.post("/public/invoices/:token/sign", async (req, res) => {
     const { signature } = req.body; 
     if (!signature) return res.status(400).json({ message: "No signature provided" });
 
-    const invoice = await prisma.invoice.findUnique({ where: { publicToken: token } });
+    const invoice = await prisma.invoice.findUnique({ where: { publicToken: token }, include: { customer: true } });
     if (!invoice) return res.status(404).json({ message: "Invoice not found" });
 
     const base64Data = signature.replace(/^data:image\/\w+;base64,/, "");
@@ -137,7 +137,7 @@ router.post("/public/invoices/:token/sign", async (req, res) => {
       }
     });
 
-    // 🚀 NEW: Log the signature event to the dashboard
+    // ðŸš€ NEW: Log the signature event to the dashboard
     await logActivity({
       userId: invoice.userId,
       action: "INVOICE_SIGNED",
