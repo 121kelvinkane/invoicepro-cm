@@ -54,22 +54,67 @@ const COLORS = {
 };
 
 // CRITICAL: Always resolve to local filesystem path
-function resolveLocalImagePath(imgPath: string): string | null {
+async function resolveLocalImagePath(imgPath: string): Promise<string | null> {
   try {
     if (!imgPath) return null;
     console.log("resolveLocalImagePath input:", imgPath);
 
-    // Strip any domain (frontend URLs like https://invoicepro-cm.vercel.app/uploads/...)
-    let localPath = imgPath;
-    if (localPath.startsWith("http://") || localPath.startsWith("https://")) {
-      try {
-        const url = new URL(localPath);
-        localPath = url.pathname;
-        console.log("Stripped domain, localPath now:", localPath);
-      } catch (e: any) {
-        console.error("URL parse failed:", e);
-        return null;
+    const appRoot = path.join(__dirname, "../..");
+    const uploadsDir = path.join(appRoot, "uploads");
+    
+    // Ensure uploads directory exists
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true });
+    }
+
+    // If it's a remote URL (http/https), download it first
+    if (imgPath.startsWith("http://") || imgPath.startsWith("https://")) {
+      console.log("Remote URL detected, downloading...");
+      const https = require("https");
+      const http = require("http");
+      const client = imgPath.startsWith("https") ? https : http;
+      
+      // Generate temp filename
+      const filename = "tmp-sig-" + Date.now() + ".png";
+      const tempPath = path.join(uploadsDir, filename);
+      
+      // Download the file
+      await new Promise<void>((resolve, reject) => {
+        client.get(imgPath, (response: any) => {
+          if (response.statusCode !== 200) {
+            console.log("Download failed, status:", response.statusCode);
+            reject(new Error("HTTP " + response.statusCode));
+            return;
+          }
+          
+          const file = fs.createWriteStream(tempPath);
+          response.pipe(file);
+          file.on("finish", () => {
+            file.close();
+            console.log("Downloaded to:", tempPath);
+            resolve();
+          });
+        }).on("error", reject);
+      });
+      
+      imgPath = tempPath;
+      console.log("Now using downloaded file:", imgPath);
+    } else {
+      // Local path - strip domain if present and join with app root
+      let localPath = imgPath;
+      if (localPath.startsWith("http://") || localPath.startsWith("https://")) {
+        try {
+          const url = new URL(localPath);
+          localPath = url.pathname;
+          console.log("Stripped domain, localPath now:", localPath);
+        } catch (e: any) {
+          console.error("URL parse failed:", e);
+          return null;
+        }
       }
+      
+      // Build absolute path
+      imgPath = path.join(appRoot, localPath);
     }
 
     // Strip data URL prefix (shouldn't happen for signatures, but safe)
@@ -78,7 +123,7 @@ function resolveLocalImagePath(imgPath: string): string | null {
       return null;
     }
 
-    // Build absolute path â€” always join with __dirname because on Linux/Render,
+    // Build absolute path Ã¢â‚¬â€ always join with __dirname because on Linux/Render,
     // "/uploads/..." is treated as absolute but doesn't actually exist at that path.
     // The real path is /opt/render/project/src/invoicepro-cm-api/uploads/...
     const appRoot = path.join(__dirname, "../..");
@@ -88,7 +133,7 @@ function resolveLocalImagePath(imgPath: string): string | null {
     console.log("File exists:", fs.existsSync(fullPath));
 
     if (!fs.existsSync(fullPath)) {
-      console.log("ÃƒÂ¢Ã‚ÂÃ…â€™ File does NOT exist at:", fullPath);
+      console.log("ÃƒÆ’Ã‚Â¢Ãƒâ€šÃ‚ÂÃƒâ€¦Ã¢â‚¬â„¢ File does NOT exist at:", fullPath);
       return null;
     }
 
@@ -102,11 +147,11 @@ function resolveLocalImagePath(imgPath: string): string | null {
     console.log("First 8 bytes:", buffer.slice(0, 8).toString("hex"));
 
     if (!isPng && !isJpeg) {
-      console.log("ÃƒÂ¢Ã‚ÂÃ…â€™ Not a valid PNG or JPEG");
+      console.log("ÃƒÆ’Ã‚Â¢Ãƒâ€šÃ‚ÂÃƒâ€¦Ã¢â‚¬â„¢ Not a valid PNG or JPEG");
       return null;
     }
 
-    console.log("ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Valid image, returning:", fullPath);
+    console.log("ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ Valid image, returning:", fullPath);
     return fullPath;
   } catch (e: any) {
     console.error("resolveLocalImagePath error:", e);
@@ -127,8 +172,8 @@ export async function generateInvoicePdf(
   console.log("======================");
 
   // Resolve both signatures BEFORE building PDF
-  const ownerSigPath = resolveLocalImagePath(business?.ownerSignatureUrl);
-  const customerSigPath = resolveLocalImagePath(invoice?.customerSignature);
+  const ownerSigPath = await resolveLocalImagePath(business?.ownerSignatureUrl);
+  const customerSigPath = await resolveLocalImagePath(invoice?.customerSignature);
 
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({ size: "A4", margin: 0 });
@@ -141,7 +186,7 @@ export async function generateInvoicePdf(
     const margin = 50;
     const contentWidth = pageWidth - margin * 2;
 
-    // ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â 1. HEADER ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â
+    // ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢Ãƒâ€šÃ‚Â 1. HEADER ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢Ãƒâ€šÃ‚Â
     doc.rect(0, 0, pageWidth, 130).fill(COLORS.slate900);
     doc.font("Helvetica-Bold").fontSize(18).fillColor(COLORS.white)
       .text(business?.businessName || "InvoicePro CM", margin, 50, { width: contentWidth / 2 });
@@ -166,7 +211,7 @@ export async function generateInvoicePdf(
     doc.rect(0, 130, pageWidth, 4).fill(COLORS.emerald600);
     let y = 160;
 
-    // ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â 2. BILLED TO + DATES ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â
+    // ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢Ãƒâ€šÃ‚Â 2. BILLED TO + DATES ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢Ãƒâ€šÃ‚Â
     doc.font("Helvetica-Bold").fontSize(9).fillColor(COLORS.emerald600)
       .text("BILLED TO", margin, y);
     doc.font("Helvetica-Bold").fontSize(14).fillColor(COLORS.slate900)
@@ -191,7 +236,7 @@ export async function generateInvoicePdf(
 
     y += 100;
 
-    // ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â 3. TABLE ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â
+    // ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢Ãƒâ€šÃ‚Â 3. TABLE ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢Ãƒâ€šÃ‚Â
     const colDesc = margin, colDescW = contentWidth * 0.5;
     const colQty = margin + contentWidth * 0.5, colQtyW = contentWidth * 0.2;
     const colAmt = margin + contentWidth * 0.7, colAmtW = contentWidth * 0.3;
@@ -217,7 +262,7 @@ export async function generateInvoicePdf(
 
     y += 20;
 
-    // ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â 4. TOTALS ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â
+    // ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢Ãƒâ€šÃ‚Â 4. TOTALS ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢Ãƒâ€šÃ‚Â
     const totalsX = pageWidth - margin - 220;
     const totalsW = 220;
 
@@ -245,7 +290,7 @@ export async function generateInvoicePdf(
 
     y += 60;
 
-    // ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â 5. AMOUNT IN WORDS ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â
+    // ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢Ãƒâ€šÃ‚Â 5. AMOUNT IN WORDS ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢Ãƒâ€šÃ‚Â
     if (y > doc.page.height - 150) { doc.addPage(); y = 50; }
     doc.roundedRect(margin, y, contentWidth, 50, 6).fill(COLORS.slate50);
     doc.font("Helvetica-Bold").fontSize(8).fillColor(COLORS.slate400)
@@ -256,7 +301,7 @@ export async function generateInvoicePdf(
 
     y += 70;
 
-    // ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â 6. SIGNATURES (pre-resolved) ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â
+    // ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢Ãƒâ€šÃ‚Â 6. SIGNATURES (pre-resolved) ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢Ãƒâ€šÃ‚Â
     if (y > doc.page.height - 150) { doc.addPage(); y = 50; }
     const sigW = (contentWidth - 40) / 2;
 
@@ -266,7 +311,7 @@ export async function generateInvoicePdf(
     if (ownerSigPath) {
       try {
         doc.image(ownerSigPath, margin + 20, y + 25, { width: sigW - 40, height: 30 });
-        console.log("ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Owner sig drawn");
+        console.log("ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ Owner sig drawn");
       } catch (e: any) { console.error("Owner sig draw error:", e.message); }
     }
     doc.moveTo(margin, y + 60).lineTo(margin + sigW, y + 60)
@@ -281,7 +326,7 @@ export async function generateInvoicePdf(
     if (customerSigPath) {
       try {
         doc.image(customerSigPath, custSigX + 20, y + 25, { width: sigW - 40, height: 30 });
-        console.log("ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Customer sig drawn");
+        console.log("ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ Customer sig drawn");
       } catch (e: any) { console.error("Customer sig draw error:", e.message); }
     }
     doc.moveTo(custSigX, y + 60).lineTo(custSigX + sigW, y + 60)
@@ -291,7 +336,7 @@ export async function generateInvoicePdf(
 
     y += 90;
 
-    // ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â 7. PAYMENT LINK (admin only) ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â
+    // ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢Ãƒâ€šÃ‚Â 7. PAYMENT LINK (admin only) ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢Ãƒâ€šÃ‚Â
     if (!options.hidePaymentLink && invoice.publicToken) {
       if (y > doc.page.height - 100) { doc.addPage(); y = 50; }
       const linkY = y;
@@ -303,7 +348,7 @@ export async function generateInvoicePdf(
         .text(linkUrl, margin + 20, linkY + 35, { link: linkUrl, underline: true });
     }
 
-    // ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â 8. FOOTER WITH GENERATED TIMESTAMP (ALWAYS shown) ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â
+    // ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢Ãƒâ€šÃ‚Â 8. FOOTER WITH GENERATED TIMESTAMP (ALWAYS shown) ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢Ãƒâ€šÃ‚Â
     const footerY = doc.page.height - 55;
     doc.rect(margin, footerY - 10, contentWidth, 2).fill(COLORS.emerald600);
     
