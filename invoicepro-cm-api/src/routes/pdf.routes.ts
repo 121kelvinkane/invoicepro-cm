@@ -3,7 +3,7 @@ import fs from "fs";
 import path from "path";
 import { prisma } from "../lib/prisma";
 import { AuthRequest, requireAuth } from "../middleware/auth";
-import { generateInvoicePdfAsync } from "../utils/pdf";
+import { generateInvoicePdf } from "../utils/pdf";
 import { logActivity } from "../utils/logger";
 
 const router = Router();
@@ -35,7 +35,7 @@ router.get("/invoices/:id/pdf", requireAuth, async (req: AuthRequest, res) => {
       });
     }
 
-    const pdf = await generateInvoicePdfAsync(
+    const pdf = await generateInvoicePdf(
       invoice,
       invoice.user.businessProfile,
       invoice.customer
@@ -81,7 +81,7 @@ router.get("/public/invoices/:token/pdf", async (req, res) => {
       });
     }
 
-    // ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ SECURITY GATE: Block download if not paid
+    // ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸Ãƒâ€¦Ã‚Â¡Ãƒâ€šÃ‚Â¨ SECURITY GATE: Block download if not paid
     if (invoice.status !== "PAID") {
       return res.status(403).json({ 
         message: "Payment required. Please pay the invoice to unlock the PDF download." 
@@ -94,7 +94,7 @@ router.get("/public/invoices/:token/pdf", async (req, res) => {
     console.log("Customer Signature:", invoice.customerSignature ? "EXISTS" : "EMPTY");
     console.log("=======================");
 
-    const pdf = await generateInvoicePdfAsync(
+    const pdf = await generateInvoicePdf(
       invoice,
       invoice.user.businessProfile,
       invoice.customer,
@@ -143,7 +143,7 @@ router.post("/public/invoices/:token/sign", async (req, res) => {
       }
     });
 
-    // ÃƒÂ°Ã…Â¸Ã…Â¡Ã¢â€šÂ¬ NEW: Log the signature event to the dashboard
+    // ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸Ãƒâ€¦Ã‚Â¡ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ NEW: Log the signature event to the dashboard
     await logActivity({
       userId: invoice.userId,
       action: "INVOICE_SIGNED",
