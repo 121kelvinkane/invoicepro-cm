@@ -78,7 +78,7 @@ function resolveLocalImagePath(imgPath: string): string | null {
       return null;
     }
 
-    // Build absolute path — always join with __dirname because on Linux/Render,
+    // Build absolute path â€” always join with __dirname because on Linux/Render,
     // "/uploads/..." is treated as absolute but doesn't actually exist at that path.
     // The real path is /opt/render/project/src/invoicepro-cm-api/uploads/...
     const appRoot = path.join(__dirname, "../..");
@@ -88,7 +88,7 @@ function resolveLocalImagePath(imgPath: string): string | null {
     console.log("File exists:", fs.existsSync(fullPath));
 
     if (!fs.existsSync(fullPath)) {
-      console.log("Ã¢ÂÅ’ File does NOT exist at:", fullPath);
+      console.log("ÃƒÂ¢Ã‚ÂÃ…â€™ File does NOT exist at:", fullPath);
       return null;
     }
 
@@ -102,11 +102,11 @@ function resolveLocalImagePath(imgPath: string): string | null {
     console.log("First 8 bytes:", buffer.slice(0, 8).toString("hex"));
 
     if (!isPng && !isJpeg) {
-      console.log("Ã¢ÂÅ’ Not a valid PNG or JPEG");
+      console.log("ÃƒÂ¢Ã‚ÂÃ…â€™ Not a valid PNG or JPEG");
       return null;
     }
 
-    console.log("Ã¢Å“â€¦ Valid image, returning:", fullPath);
+    console.log("ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Valid image, returning:", fullPath);
     return fullPath;
   } catch (e: any) {
     console.error("resolveLocalImagePath error:", e);
@@ -141,7 +141,7 @@ export async function generateInvoicePdf(
     const margin = 50;
     const contentWidth = pageWidth - margin * 2;
 
-    // Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â 1. HEADER Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
+    // ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â 1. HEADER ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â
     doc.rect(0, 0, pageWidth, 130).fill(COLORS.slate900);
     doc.font("Helvetica-Bold").fontSize(18).fillColor(COLORS.white)
       .text(business?.businessName || "InvoicePro CM", margin, 50, { width: contentWidth / 2 });
@@ -166,7 +166,7 @@ export async function generateInvoicePdf(
     doc.rect(0, 130, pageWidth, 4).fill(COLORS.emerald600);
     let y = 160;
 
-    // Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â 2. BILLED TO + DATES Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
+    // ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â 2. BILLED TO + DATES ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â
     doc.font("Helvetica-Bold").fontSize(9).fillColor(COLORS.emerald600)
       .text("BILLED TO", margin, y);
     doc.font("Helvetica-Bold").fontSize(14).fillColor(COLORS.slate900)
@@ -191,7 +191,7 @@ export async function generateInvoicePdf(
 
     y += 100;
 
-    // Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â 3. TABLE Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
+    // ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â 3. TABLE ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â
     const colDesc = margin, colDescW = contentWidth * 0.5;
     const colQty = margin + contentWidth * 0.5, colQtyW = contentWidth * 0.2;
     const colAmt = margin + contentWidth * 0.7, colAmtW = contentWidth * 0.3;
@@ -217,7 +217,7 @@ export async function generateInvoicePdf(
 
     y += 20;
 
-    // Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â 4. TOTALS Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
+    // ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â 4. TOTALS ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â
     const totalsX = pageWidth - margin - 220;
     const totalsW = 220;
 
@@ -245,7 +245,7 @@ export async function generateInvoicePdf(
 
     y += 60;
 
-    // Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â 5. AMOUNT IN WORDS Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
+    // ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â 5. AMOUNT IN WORDS ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â
     if (y > doc.page.height - 150) { doc.addPage(); y = 50; }
     doc.roundedRect(margin, y, contentWidth, 50, 6).fill(COLORS.slate50);
     doc.font("Helvetica-Bold").fontSize(8).fillColor(COLORS.slate400)
@@ -256,7 +256,7 @@ export async function generateInvoicePdf(
 
     y += 70;
 
-    // Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â 6. SIGNATURES (pre-resolved) Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
+    // ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â 6. SIGNATURES (pre-resolved) ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â
     if (y > doc.page.height - 150) { doc.addPage(); y = 50; }
     const sigW = (contentWidth - 40) / 2;
 
@@ -266,7 +266,7 @@ export async function generateInvoicePdf(
     if (ownerSigPath) {
       try {
         doc.image(ownerSigPath, margin + 20, y + 25, { width: sigW - 40, height: 30 });
-        console.log("Ã¢Å“â€¦ Owner sig drawn");
+        console.log("ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Owner sig drawn");
       } catch (e: any) { console.error("Owner sig draw error:", e.message); }
     }
     doc.moveTo(margin, y + 60).lineTo(margin + sigW, y + 60)
@@ -281,7 +281,7 @@ export async function generateInvoicePdf(
     if (customerSigPath) {
       try {
         doc.image(customerSigPath, custSigX + 20, y + 25, { width: sigW - 40, height: 30 });
-        console.log("Ã¢Å“â€¦ Customer sig drawn");
+        console.log("ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Customer sig drawn");
       } catch (e: any) { console.error("Customer sig draw error:", e.message); }
     }
     doc.moveTo(custSigX, y + 60).lineTo(custSigX + sigW, y + 60)
@@ -291,7 +291,7 @@ export async function generateInvoicePdf(
 
     y += 90;
 
-    // Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â 7. PAYMENT LINK (admin only) Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
+    // ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â 7. PAYMENT LINK (admin only) ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â
     if (!options.hidePaymentLink && invoice.publicToken) {
       if (y > doc.page.height - 100) { doc.addPage(); y = 50; }
       const linkY = y;
@@ -303,13 +303,13 @@ export async function generateInvoicePdf(
         .text(linkUrl, margin + 20, linkY + 35, { link: linkUrl, underline: true });
     }
 
-    // Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â 8. FOOTER WITH GENERATED TIMESTAMP (ALWAYS shown) Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
+    // ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â 8. FOOTER WITH GENERATED TIMESTAMP (ALWAYS shown) ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â
     const footerY = doc.page.height - 55;
     doc.rect(margin, footerY - 10, contentWidth, 2).fill(COLORS.emerald600);
     
     const now = new Date();
     const generatedDate = now.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
-    const generatedTime = now.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+    const generatedTime = now.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
     const generatedText = "Generated on: " + generatedDate + " at " + generatedTime;
     
     doc.font("Helvetica").fontSize(8).fillColor(COLORS.slate400)
