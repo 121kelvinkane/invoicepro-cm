@@ -1,4 +1,4 @@
-﻿generator client {
+generator client {
   provider = "prisma-client-js"
 }
 
@@ -79,12 +79,12 @@ model Invoice {
   issueDate      DateTime
   dueDate        DateTime
   currency       String   @default("XAF")
-  subtotal Decimal
+  subtotal       Int
   vatRate        Float?
-  vatAmount Decimal      @default(0)
-  total Decimal
-  amountPaid Decimal      @default(0)
-  balanceDue Decimal
+  vatAmount      Int      @default(0)
+  total          Int
+  amountPaid     Int      @default(0)
+  balanceDue     Int
   notes          String?
   paymentTerms   String?
   publicToken    String   @unique
@@ -111,8 +111,8 @@ model InvoiceLineItem {
   invoiceId   String
   description String
   quantity    Int
-  unitPrice Decimal
-  amount Decimal
+  unitPrice   Int
+  amount      Int
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -127,7 +127,7 @@ model Payment {
   providerReference String?
   method            String
   status            String   @default("PENDING")
-  amount Decimal
+  amount            Int
   currency          String   @default("XAF")
   isManual          Boolean  @default(false)
   manualNote        String?
@@ -170,6 +170,5 @@ model ActivityLog {
 
   @@index([userId, createdAt])
 }
-
 
 
