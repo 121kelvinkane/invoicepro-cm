@@ -14,11 +14,9 @@ import CreateInvoice from "./pages/CreateInvoice";
 import InvoiceDetails from "./pages/InvoiceDetails";
 import PublicInvoice from "./pages/PublicInvoice";
 import Settings from "./pages/Settings";
-
 function Private({ children }: any) {
   return getToken() ? children : <Navigate to="/login" />;
-}
-
+} 
 export default function App() {
   return (
     <LanguageProvider>

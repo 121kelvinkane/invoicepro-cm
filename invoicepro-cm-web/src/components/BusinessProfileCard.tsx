@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+﻿import { useState, useEffect, useRef } from "react";
 import { api } from "../lib/api";
 import { useToast } from "./Toast";
 import { Upload, Building2, Save, X } from "lucide-react";
@@ -7,7 +7,7 @@ import SignatureCanvas from "react-signature-canvas";
 export default function BusinessProfileCard() {
   const { showToast } = useToast();
   const [profile, setProfile] = useState({
-    name: "", tin: "", address: "", phone: "", email: "", logoUrl: "", signatureUrl: ""
+    name: "", tin: "", address: "", phone: "", email: "", logoUrl: "", signatureUrl: "", momoNumber: ""
   });
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -191,6 +191,17 @@ export default function BusinessProfileCard() {
           <label className="block text-sm font-medium text-gray-700 mb-1">Business Phone</label>
           <input name="phone" value={profile.phone || ""} onChange={handleChange} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none" placeholder="+237 6XX XXX XXX" />
         </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">MoMo Number (Auto-Payout)</label>
+                <input
+                  type="text"
+                  placeholder="6XX XXX XXX"
+                  value={profile.momoNumber || ""}
+                  onChange={(e) => setProfile({ ...profile, momoNumber: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+                />
+                <p className="text-xs text-gray-500 mt-1">Payments will be auto-sent to this number.</p>
+              </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Business Email</label>
           <input name="email" value={profile.email || ""} onChange={handleChange} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none" placeholder="contact@business.com" />
@@ -203,3 +214,4 @@ export default function BusinessProfileCard() {
     </div>
   );
 }
+

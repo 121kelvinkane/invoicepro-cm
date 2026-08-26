@@ -40,7 +40,7 @@ export default function Register() {
         }),
       });
       setToken(res.token);
-      navigate("/dashboard");
+      localStorage.setItem("token", res.token); window.location.href = "/dashboard";
     } catch (err: any) {
       setError(err.message);
     } finally {
