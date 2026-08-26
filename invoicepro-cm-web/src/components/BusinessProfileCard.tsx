@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { api } from "../lib/api";
 import { useToast } from "./Toast";
 import { Upload, Building2, Save, X } from "lucide-react";
@@ -44,7 +44,7 @@ export default function BusinessProfileCard() {
       });
       const data = await res.json();
       if (data.url) {
-        const fullUrl = `${window.location.origin.replace(":3000", ":4000")}${data.url}`;
+        const fullUrl = data.url;
         setProfile(prev => ({ ...prev, logoUrl: fullUrl }));
         showToast("Logo uploaded! Click Save to apply.", "success");
       }
@@ -77,7 +77,7 @@ export default function BusinessProfileCard() {
       });
       const data = await res.json();
       if (data.url) {
-        const fullUrl = `${window.location.origin.replace(":3000", ":4000")}${data.url}`;
+        const fullUrl = data.url;
         setProfile(prev => ({ ...prev, signatureUrl: fullUrl }));
         showToast("Signature saved! Click Save Profile to apply.", "success");
       }
@@ -165,7 +165,7 @@ export default function BusinessProfileCard() {
           </div>
           <div className="w-48 h-32 bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl flex items-center justify-center overflow-hidden">
             {profile.signatureUrl ? (
-              <img src={profile.signatureUrl} alt="Saved Signature" className="max-w-full max-h-full object-contain p-2" />
+              <img src={profile.signatureUrl.startsWith("http") ? profile.signatureUrl : (import.meta.env.VITE_API_URL || "http://localhost:4000/api/v1") + profile.signatureUrl} alt="Saved Signature" className="max-w-full max-h-full object-contain p-2" />
             ) : (
               <span className="text-xs text-gray-400 text-center px-2">Saved signature will appear here</span>
             )}
