@@ -66,7 +66,7 @@ function resolveLocalImagePath(imgPath: string): string | null {
         const url = new URL(localPath);
         localPath = url.pathname;
         console.log("Stripped domain, localPath now:", localPath);
-      } catch (e) {
+      } catch (e: any) {
         console.error("URL parse failed:", e);
         return null;
       }
@@ -92,7 +92,7 @@ function resolveLocalImagePath(imgPath: string): string | null {
     console.log("File exists:", fs.existsSync(fullPath));
 
     if (!fs.existsSync(fullPath)) {
-      console.log("❌ File does NOT exist at:", fullPath);
+      console.log("âŒ File does NOT exist at:", fullPath);
       return null;
     }
 
@@ -106,13 +106,13 @@ function resolveLocalImagePath(imgPath: string): string | null {
     console.log("First 8 bytes:", buffer.slice(0, 8).toString("hex"));
 
     if (!isPng && !isJpeg) {
-      console.log("❌ Not a valid PNG or JPEG");
+      console.log("âŒ Not a valid PNG or JPEG");
       return null;
     }
 
-    console.log("✅ Valid image, returning:", fullPath);
+    console.log("âœ… Valid image, returning:", fullPath);
     return fullPath;
-  } catch (e) {
+  } catch (e: any) {
     console.error("resolveLocalImagePath error:", e);
     return null;
   }
@@ -145,7 +145,7 @@ export async function generateInvoicePdf(
     const margin = 50;
     const contentWidth = pageWidth - margin * 2;
 
-    // ═══ 1. HEADER ═══
+    // â•â•â• 1. HEADER â•â•â•
     doc.rect(0, 0, pageWidth, 130).fill(COLORS.slate900);
     doc.font("Helvetica-Bold").fontSize(18).fillColor(COLORS.white)
       .text(business?.businessName || "InvoicePro CM", margin, 50, { width: contentWidth / 2 });
@@ -170,7 +170,7 @@ export async function generateInvoicePdf(
     doc.rect(0, 130, pageWidth, 4).fill(COLORS.emerald600);
     let y = 160;
 
-    // ═══ 2. BILLED TO + DATES ═══
+    // â•â•â• 2. BILLED TO + DATES â•â•â•
     doc.font("Helvetica-Bold").fontSize(9).fillColor(COLORS.emerald600)
       .text("BILLED TO", margin, y);
     doc.font("Helvetica-Bold").fontSize(14).fillColor(COLORS.slate900)
@@ -195,7 +195,7 @@ export async function generateInvoicePdf(
 
     y += 100;
 
-    // ═══ 3. TABLE ═══
+    // â•â•â• 3. TABLE â•â•â•
     const colDesc = margin, colDescW = contentWidth * 0.5;
     const colQty = margin + contentWidth * 0.5, colQtyW = contentWidth * 0.2;
     const colAmt = margin + contentWidth * 0.7, colAmtW = contentWidth * 0.3;
@@ -221,7 +221,7 @@ export async function generateInvoicePdf(
 
     y += 20;
 
-    // ═══ 4. TOTALS ═══
+    // â•â•â• 4. TOTALS â•â•â•
     const totalsX = pageWidth - margin - 220;
     const totalsW = 220;
 
@@ -249,7 +249,7 @@ export async function generateInvoicePdf(
 
     y += 60;
 
-    // ═══ 5. AMOUNT IN WORDS ═══
+    // â•â•â• 5. AMOUNT IN WORDS â•â•â•
     if (y > doc.page.height - 150) { doc.addPage(); y = 50; }
     doc.roundedRect(margin, y, contentWidth, 50, 6).fill(COLORS.slate50);
     doc.font("Helvetica-Bold").fontSize(8).fillColor(COLORS.slate400)
@@ -260,7 +260,7 @@ export async function generateInvoicePdf(
 
     y += 70;
 
-    // ═══ 6. SIGNATURES (pre-resolved) ═══
+    // â•â•â• 6. SIGNATURES (pre-resolved) â•â•â•
     if (y > doc.page.height - 150) { doc.addPage(); y = 50; }
     const sigW = (contentWidth - 40) / 2;
 
@@ -270,8 +270,8 @@ export async function generateInvoicePdf(
     if (ownerSigPath) {
       try {
         doc.image(ownerSigPath, margin + 20, y + 25, { width: sigW - 40, height: 30 });
-        console.log("✅ Owner sig drawn");
-      } catch (e) { console.error("Owner sig draw error:", e.message); }
+        console.log("âœ… Owner sig drawn");
+      } catch (e: any) { console.error("Owner sig draw error:", e.message); }
     }
     doc.moveTo(margin, y + 60).lineTo(margin + sigW, y + 60)
       .strokeColor(COLORS.slate400).lineWidth(0.5).stroke();
@@ -285,8 +285,8 @@ export async function generateInvoicePdf(
     if (customerSigPath) {
       try {
         doc.image(customerSigPath, custSigX + 20, y + 25, { width: sigW - 40, height: 30 });
-        console.log("✅ Customer sig drawn");
-      } catch (e) { console.error("Customer sig draw error:", e.message); }
+        console.log("âœ… Customer sig drawn");
+      } catch (e: any) { console.error("Customer sig draw error:", e.message); }
     }
     doc.moveTo(custSigX, y + 60).lineTo(custSigX + sigW, y + 60)
       .strokeColor(COLORS.slate400).lineWidth(0.5).stroke();
@@ -295,7 +295,7 @@ export async function generateInvoicePdf(
 
     y += 90;
 
-    // ═══ 7. PAYMENT LINK (admin only) ═══
+    // â•â•â• 7. PAYMENT LINK (admin only) â•â•â•
     if (!options.hidePaymentLink && invoice.publicToken) {
       if (y > doc.page.height - 100) { doc.addPage(); y = 50; }
       const linkY = y;
@@ -307,7 +307,7 @@ export async function generateInvoicePdf(
         .text(linkUrl, margin + 20, linkY + 35, { link: linkUrl, underline: true });
     }
 
-    // ═══ 8. FOOTER WITH GENERATED TIMESTAMP (ALWAYS shown) ═══
+    // â•â•â• 8. FOOTER WITH GENERATED TIMESTAMP (ALWAYS shown) â•â•â•
     const footerY = doc.page.height - 55;
     doc.rect(margin, footerY - 10, contentWidth, 2).fill(COLORS.emerald600);
     
