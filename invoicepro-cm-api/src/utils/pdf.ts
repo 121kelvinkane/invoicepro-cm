@@ -78,21 +78,17 @@ function resolveLocalImagePath(imgPath: string): string | null {
       return null;
     }
 
-    // Build absolute path
-    let fullPath: string;
-    if (path.isAbsolute(localPath)) {
-      fullPath = localPath;
-    } else if (localPath.startsWith("/")) {
-      fullPath = path.join(__dirname, "../..", localPath);
-    } else {
-      fullPath = path.join(__dirname, "../..", "/" + localPath);
-    }
+    // Build absolute path — always join with __dirname because on Linux/Render,
+    // "/uploads/..." is treated as absolute but doesn't actually exist at that path.
+    // The real path is /opt/render/project/src/invoicepro-cm-api/uploads/...
+    const appRoot = path.join(__dirname, "../..");
+    const fullPath = path.join(appRoot, localPath);
 
     console.log("Final absolute path:", fullPath);
     console.log("File exists:", fs.existsSync(fullPath));
 
     if (!fs.existsSync(fullPath)) {
-      console.log("âŒ File does NOT exist at:", fullPath);
+      console.log("Ã¢ÂÅ’ File does NOT exist at:", fullPath);
       return null;
     }
 
@@ -106,11 +102,11 @@ function resolveLocalImagePath(imgPath: string): string | null {
     console.log("First 8 bytes:", buffer.slice(0, 8).toString("hex"));
 
     if (!isPng && !isJpeg) {
-      console.log("âŒ Not a valid PNG or JPEG");
+      console.log("Ã¢ÂÅ’ Not a valid PNG or JPEG");
       return null;
     }
 
-    console.log("âœ… Valid image, returning:", fullPath);
+    console.log("Ã¢Å“â€¦ Valid image, returning:", fullPath);
     return fullPath;
   } catch (e: any) {
     console.error("resolveLocalImagePath error:", e);
@@ -145,7 +141,7 @@ export async function generateInvoicePdf(
     const margin = 50;
     const contentWidth = pageWidth - margin * 2;
 
-    // â•â•â• 1. HEADER â•â•â•
+    // Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â 1. HEADER Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
     doc.rect(0, 0, pageWidth, 130).fill(COLORS.slate900);
     doc.font("Helvetica-Bold").fontSize(18).fillColor(COLORS.white)
       .text(business?.businessName || "InvoicePro CM", margin, 50, { width: contentWidth / 2 });
@@ -170,7 +166,7 @@ export async function generateInvoicePdf(
     doc.rect(0, 130, pageWidth, 4).fill(COLORS.emerald600);
     let y = 160;
 
-    // â•â•â• 2. BILLED TO + DATES â•â•â•
+    // Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â 2. BILLED TO + DATES Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
     doc.font("Helvetica-Bold").fontSize(9).fillColor(COLORS.emerald600)
       .text("BILLED TO", margin, y);
     doc.font("Helvetica-Bold").fontSize(14).fillColor(COLORS.slate900)
@@ -195,7 +191,7 @@ export async function generateInvoicePdf(
 
     y += 100;
 
-    // â•â•â• 3. TABLE â•â•â•
+    // Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â 3. TABLE Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
     const colDesc = margin, colDescW = contentWidth * 0.5;
     const colQty = margin + contentWidth * 0.5, colQtyW = contentWidth * 0.2;
     const colAmt = margin + contentWidth * 0.7, colAmtW = contentWidth * 0.3;
@@ -221,7 +217,7 @@ export async function generateInvoicePdf(
 
     y += 20;
 
-    // â•â•â• 4. TOTALS â•â•â•
+    // Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â 4. TOTALS Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
     const totalsX = pageWidth - margin - 220;
     const totalsW = 220;
 
@@ -249,7 +245,7 @@ export async function generateInvoicePdf(
 
     y += 60;
 
-    // â•â•â• 5. AMOUNT IN WORDS â•â•â•
+    // Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â 5. AMOUNT IN WORDS Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
     if (y > doc.page.height - 150) { doc.addPage(); y = 50; }
     doc.roundedRect(margin, y, contentWidth, 50, 6).fill(COLORS.slate50);
     doc.font("Helvetica-Bold").fontSize(8).fillColor(COLORS.slate400)
@@ -260,7 +256,7 @@ export async function generateInvoicePdf(
 
     y += 70;
 
-    // â•â•â• 6. SIGNATURES (pre-resolved) â•â•â•
+    // Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â 6. SIGNATURES (pre-resolved) Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
     if (y > doc.page.height - 150) { doc.addPage(); y = 50; }
     const sigW = (contentWidth - 40) / 2;
 
@@ -270,7 +266,7 @@ export async function generateInvoicePdf(
     if (ownerSigPath) {
       try {
         doc.image(ownerSigPath, margin + 20, y + 25, { width: sigW - 40, height: 30 });
-        console.log("âœ… Owner sig drawn");
+        console.log("Ã¢Å“â€¦ Owner sig drawn");
       } catch (e: any) { console.error("Owner sig draw error:", e.message); }
     }
     doc.moveTo(margin, y + 60).lineTo(margin + sigW, y + 60)
@@ -285,7 +281,7 @@ export async function generateInvoicePdf(
     if (customerSigPath) {
       try {
         doc.image(customerSigPath, custSigX + 20, y + 25, { width: sigW - 40, height: 30 });
-        console.log("âœ… Customer sig drawn");
+        console.log("Ã¢Å“â€¦ Customer sig drawn");
       } catch (e: any) { console.error("Customer sig draw error:", e.message); }
     }
     doc.moveTo(custSigX, y + 60).lineTo(custSigX + sigW, y + 60)
@@ -295,7 +291,7 @@ export async function generateInvoicePdf(
 
     y += 90;
 
-    // â•â•â• 7. PAYMENT LINK (admin only) â•â•â•
+    // Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â 7. PAYMENT LINK (admin only) Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
     if (!options.hidePaymentLink && invoice.publicToken) {
       if (y > doc.page.height - 100) { doc.addPage(); y = 50; }
       const linkY = y;
@@ -307,7 +303,7 @@ export async function generateInvoicePdf(
         .text(linkUrl, margin + 20, linkY + 35, { link: linkUrl, underline: true });
     }
 
-    // â•â•â• 8. FOOTER WITH GENERATED TIMESTAMP (ALWAYS shown) â•â•â•
+    // Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â 8. FOOTER WITH GENERATED TIMESTAMP (ALWAYS shown) Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
     const footerY = doc.page.height - 55;
     doc.rect(margin, footerY - 10, contentWidth, 2).fill(COLORS.emerald600);
     
@@ -316,10 +312,10 @@ export async function generateInvoicePdf(
     const generatedTime = now.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
     const generatedText = "Generated on: " + generatedDate + " at " + generatedTime;
     
-    doc.font("Helvetica").fontSize(9).fillColor(COLORS.slate400)
+    doc.font("Helvetica").fontSize(8).fillColor(COLORS.slate400)
       .text("Generated with InvoicePro CM", margin, footerY, { width: contentWidth, align: "center" });
-    doc.font("Helvetica-Bold").fontSize(10).fillColor(COLORS.slate900)
-      .text(generatedText, margin, footerY + 15, { width: contentWidth, align: "center" });
+    doc.font("Helvetica").fontSize(8).fillColor(COLORS.slate400)
+      .text(generatedText, margin, footerY + 12, { width: contentWidth, align: "center" });
 
     doc.end();
   });
