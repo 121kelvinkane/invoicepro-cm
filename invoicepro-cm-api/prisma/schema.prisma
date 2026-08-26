@@ -43,6 +43,7 @@ model BusinessProfile {
   defaultVatRate  Float?   @default(19.25)
   vatEnabled      Boolean  @default(false)
   plan            String   @default("FREE")
+  momoNumber      String?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
@@ -170,6 +171,7 @@ model ActivityLog {
 
   @@index([userId, createdAt])
 }
+
 
 
 
