@@ -13,13 +13,11 @@ router.post("/campay", async (req, res) => {
     if (status === "SUCCESSFUL" && external_reference) {
       const invoice = await prisma.invoice.findUnique({
         where: { publicToken: external_reference },
-        include: {
-          user: { select: { businessProfile: true } },
-        },
+        include: { user: { select: { businessProfile: true } } },
       });
       
       if (invoice && invoice.status !== "PAID") {
-        // 1. Record the payment
+        // 1. Record payment
         await prisma.payment.create({
           data: {
             invoiceId: invoice.id,
@@ -32,7 +30,7 @@ router.post("/campay", async (req, res) => {
           },
         });
         
-        // 2. Mark invoice as PAID
+        // 2. Mark invoice PAID
         await prisma.invoice.update({
           where: { id: invoice.id },
           data: {
@@ -45,23 +43,22 @@ router.post("/campay", async (req, res) => {
         
         console.log(`✅ Invoice ${invoice.invoiceNumber} marked as PAID`);
         
-        // 3. AUTO-TRANSFER money to owner's phone number (from BusinessProfile.phone)
-        const ownerPhone = invoice.user?.businessProfile?.phone;
-        if (ownerPhone) {
+        // 3. AUTO-TRANSFER to Owner's MoMo Number
+        const ownerMomo = invoice.user?.businessProfile?.momoNumber;
+        if (ownerMomo) {
           try {
             await transferToOwner({
               amount: Number(amount),
-              phone: ownerPhone,
+              phone: ownerMomo,
               reference: `PAYOUT-${invoice.invoiceNumber}`,
-              description: `Auto-payout for invoice ${invoice.invoiceNumber}`,
+              description: `Auto-payout for ${invoice.invoiceNumber}`,
             });
-            console.log(`💰 Money sent to owner: ${ownerPhone}`);
+            console.log(`💰 Money sent to owner MoMo: ${ownerMomo}`);
           } catch (transferErr: any) {
             console.error("❌ Auto-transfer failed:", transferErr.message);
-            // Money stays in Campay wallet if transfer fails
           }
         } else {
-          console.log("⚠️ No phone number set for owner. Money stays in Campay wallet.");
+          console.log("⚠️ No MoMo Number set. Money stays in Campay wallet.");
         }
       }
     }

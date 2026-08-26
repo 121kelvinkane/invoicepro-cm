@@ -97,7 +97,7 @@ router.put("/", requireAuth, async (req: any, res) => {
   try {
     const userId = req.user?.id || (req as any).userId;
     if (!userId) return res.status(401).json({ error: "Unauthorized" });
-    const { name, tin, address, phone, email, logoUrl, signatureUrl } = req.body;
+    const { name, tin, address, phone, email, logoUrl, signatureUrl, momoNumber } = req.body;
 
     const profile = await prisma.businessProfile.upsert({
       where: { userId },
@@ -109,6 +109,7 @@ router.put("/", requireAuth, async (req: any, res) => {
         email,
         logoUrl,
         ownerSignatureUrl: signatureUrl,
+        momoNumber,
       },
       create: {
         userId,
@@ -119,6 +120,7 @@ router.put("/", requireAuth, async (req: any, res) => {
         email,
         logoUrl,
         ownerSignatureUrl: signatureUrl,
+        momoNumber,
       },
     });
             await logActivity({
@@ -143,6 +145,7 @@ router.put("/", requireAuth, async (req: any, res) => {
 });
 
 export default router;
+
 
 
 
