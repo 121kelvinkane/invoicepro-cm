@@ -60,7 +60,7 @@ async function resolveImagePath(imgPath: string): Promise<string | null> {
   try {
     if (!imgPath) return null;
 
-    // Base64 data URL Ã¢â‚¬â€ write to temp file
+    // Base64 data URL ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â write to temp file
     if (imgPath.startsWith("data:image")) {
       const base64Data = imgPath.replace(/^data:image\/\w+;base64,/, "");
       const tmpPath = path.join(__dirname, "../../uploads/tmp-sig-" + Date.now() + ".png");
@@ -70,7 +70,7 @@ async function resolveImagePath(imgPath: string): Promise<string | null> {
       return tmpPath;
     }
 
-    // Remote URL Ã¢â‚¬â€ download
+    // Remote URL ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â download
     if (imgPath.startsWith("http://") || imgPath.startsWith("https://")) {
       const tmpPath = path.join(__dirname, "../../uploads/tmp-sig-" + Date.now() + ".png");
       const uploadsDir = path.join(__dirname, "../../uploads");
@@ -132,7 +132,7 @@ export async function generateInvoicePdf(
     const margin = 50;
     const contentWidth = pageWidth - margin * 2;
 
-    // Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â 1. DARK SLATE HEADER Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
+    // ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â 1. DARK SLATE HEADER ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â
     doc.rect(0, 0, pageWidth, 130).fill(COLORS.slate900);
 
     doc.font("Helvetica-Bold").fontSize(18).fillColor(COLORS.white)
@@ -155,12 +155,12 @@ export async function generateInvoicePdf(
     doc.font("Helvetica-Bold").fontSize(8).fillColor(COLORS.white)
       .text(badgeText, badgeX, badgeY + 5, { width: badgeWidth, align: "center" });
 
-    // Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â 2. EMERALD STRIPE Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
+    // ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â 2. EMERALD STRIPE ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â
     doc.rect(0, 130, pageWidth, 4).fill(COLORS.emerald600);
 
     let y = 160;
 
-    // Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â 3. BILLED TO + DATES (FIXED: dates now visible!) Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
+    // ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â 3. BILLED TO + DATES (FIXED: dates now visible!) ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â
     doc.font("Helvetica-Bold").fontSize(9).fillColor(COLORS.emerald600)
       .text("BILLED TO", margin, y);
     doc.font("Helvetica-Bold").fontSize(14).fillColor(COLORS.slate900)
@@ -169,12 +169,12 @@ export async function generateInvoicePdf(
     if (customer?.email) doc.text(customer.email, margin, doc.y + 2, { width: contentWidth / 2 });
     if (customer?.phone) doc.text(customer.phone, margin, doc.y + 2, { width: contentWidth / 2 });
 
-    // DATES CARD (right) Ã¢â‚¬â€ FIXED positioning
+    // DATES CARD (right) ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â FIXED positioning
     const cardX = pageWidth - margin - 200;
     const cardY = y - 5;
     doc.roundedRect(cardX, cardY, 200, 70, 6).fill(COLORS.slate50);
 
-    // Issue date row Ã¢â‚¬â€ label left, value right within SAME 180px width
+    // Issue date row ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â label left, value right within SAME 180px width
     doc.font("Helvetica-Bold").fontSize(8).fillColor(COLORS.slate400)
       .text("ISSUE DATE", cardX + 10, cardY + 15, { width: 180, align: "left" });
     doc.font("Helvetica-Bold").fontSize(11).fillColor(COLORS.slate900)
@@ -188,7 +188,7 @@ export async function generateInvoicePdf(
 
     y += 100;
 
-    // Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â 4. TABLE Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
+    // ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â 4. TABLE ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â
     const colDesc = margin;
     const colDescW = contentWidth * 0.5;
     const colQty = margin + contentWidth * 0.5;
@@ -217,7 +217,7 @@ export async function generateInvoicePdf(
 
     y += 20;
 
-    // Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â 5. TOTALS Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
+    // ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â 5. TOTALS ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â
     const totalsX = pageWidth - margin - 220;
     const totalsW = 220;
 
@@ -245,7 +245,7 @@ export async function generateInvoicePdf(
 
     y += 60;
 
-    // Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â 6. AMOUNT IN WORDS Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
+    // ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â 6. AMOUNT IN WORDS ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â
     if (y > doc.page.height - 150) { doc.addPage(); y = 50; }
     doc.roundedRect(margin, y, contentWidth, 50, 6).fill(COLORS.slate50);
     doc.font("Helvetica-Bold").fontSize(8).fillColor(COLORS.slate400)
@@ -256,7 +256,7 @@ export async function generateInvoicePdf(
 
     y += 70;
 
-    // Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â 7. SIGNATURES (ASYNC Ã¢â‚¬â€ resolved outside promise) Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
+    // ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â 7. SIGNATURES (ASYNC ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â resolved outside promise) ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â
     // These are placeholders; actual images injected after resolveImagePath completes
     // We'll build the PDF in async wrapper instead
     if (y > doc.page.height - 150) { doc.addPage(); y = 50; }
@@ -291,7 +291,7 @@ export async function generateInvoicePdf(
 
     y += 90;
 
-    // Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â 8. PAYMENT LINK (admin only) Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
+    // ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â 8. PAYMENT LINK (admin only) ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â
     if (!options.hidePaymentLink && invoice.publicToken) {
       if (y > doc.page.height - 100) { doc.addPage(); y = 50; }
       const linkY = y;
@@ -303,7 +303,7 @@ export async function generateInvoicePdf(
         .text(linkUrl, margin + 20, linkY + 35, { link: linkUrl, underline: true });
     }
 
-    // Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â 9. FOOTER Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
+    // ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â 9. FOOTER ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â
     const footerY = doc.page.height - 40;
     doc.rect(margin, footerY - 10, contentWidth, 2).fill(COLORS.emerald600);
     doc.font("Helvetica").fontSize(9).fillColor(COLORS.slate400)
@@ -347,7 +347,7 @@ export async function generateInvoicePdfAsync(
     const margin = 50;
     const contentWidth = pageWidth - margin * 2;
 
-    // Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â 1. HEADER Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
+    // ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â 1. HEADER ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â
     doc.rect(0, 0, pageWidth, 130).fill(COLORS.slate900);
     doc.font("Helvetica-Bold").fontSize(18).fillColor(COLORS.white)
       .text(business?.businessName || "InvoicePro CM", margin, 50, { width: contentWidth / 2 });
@@ -372,7 +372,7 @@ export async function generateInvoicePdfAsync(
     doc.rect(0, 130, pageWidth, 4).fill(COLORS.emerald600);
     let y = 160;
 
-    // Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â 3. BILLED TO + DATES (FIXED!) Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
+    // ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â 3. BILLED TO + DATES (FIXED!) ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â
     doc.font("Helvetica-Bold").fontSize(9).fillColor(COLORS.emerald600)
       .text("BILLED TO", margin, y);
     doc.font("Helvetica-Bold").fontSize(14).fillColor(COLORS.slate900)
@@ -397,7 +397,7 @@ export async function generateInvoicePdfAsync(
 
     y += 100;
 
-    // Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â 4. TABLE Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
+    // ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â 4. TABLE ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â
     const colDesc = margin, colDescW = contentWidth * 0.5;
     const colQty = margin + contentWidth * 0.5, colQtyW = contentWidth * 0.2;
     const colAmt = margin + contentWidth * 0.7, colAmtW = contentWidth * 0.3;
@@ -423,7 +423,7 @@ export async function generateInvoicePdfAsync(
 
     y += 20;
 
-    // Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â 5. TOTALS Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
+    // ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â 5. TOTALS ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â
     const totalsX = pageWidth - margin - 220;
     const totalsW = 220;
 
@@ -451,7 +451,7 @@ export async function generateInvoicePdfAsync(
 
     y += 60;
 
-    // Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â 6. AMOUNT IN WORDS Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
+    // ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â 6. AMOUNT IN WORDS ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â
     if (y > doc.page.height - 150) { doc.addPage(); y = 50; }
     doc.roundedRect(margin, y, contentWidth, 50, 6).fill(COLORS.slate50);
     doc.font("Helvetica-Bold").fontSize(8).fillColor(COLORS.slate400)
@@ -462,7 +462,7 @@ export async function generateInvoicePdfAsync(
 
     y += 70;
 
-    // Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â 7. SIGNATURES WITH IMAGES Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
+    // ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â 7. SIGNATURES WITH IMAGES ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â
     if (y > doc.page.height - 150) { doc.addPage(); y = 50; }
     const sigW = (contentWidth - 40) / 2;
 
@@ -472,7 +472,7 @@ export async function generateInvoicePdfAsync(
     if (ownerSigPath) {
       try {
         doc.image(ownerSigPath, margin + 20, y + 25, { width: sigW - 40, height: 30 });
-        console.log("Ã¢Å“â€¦ Owner signature drawn from:", ownerSigPath);
+        console.log("ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Owner signature drawn from:", ownerSigPath);
       } catch (e) { console.error("Owner sig draw failed:", e); }
     }
     doc.moveTo(margin, y + 60).lineTo(margin + sigW, y + 60)
@@ -487,7 +487,7 @@ export async function generateInvoicePdfAsync(
     if (customerSigPath) {
       try {
         doc.image(customerSigPath, custSigX + 20, y + 25, { width: sigW - 40, height: 30 });
-        console.log("Ã¢Å“â€¦ Customer signature drawn from:", customerSigPath);
+        console.log("ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Customer signature drawn from:", customerSigPath);
       } catch (e) { console.error("Customer sig draw failed:", e); }
     }
     doc.moveTo(custSigX, y + 60).lineTo(custSigX + sigW, y + 60)
@@ -497,7 +497,7 @@ export async function generateInvoicePdfAsync(
 
     y += 90;
 
-    // Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â 8. PAYMENT LINK (admin only) Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
+    // ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â 8. PAYMENT LINK (admin only) ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â
     if (!options.hidePaymentLink && invoice.publicToken) {
       if (y > doc.page.height - 100) { doc.addPage(); y = 50; }
       const linkY = y;
@@ -509,7 +509,7 @@ export async function generateInvoicePdfAsync(
         .text(linkUrl, margin + 20, linkY + 35, { link: linkUrl, underline: true });
     }
 
-    // Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â 9. FOOTER Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
+    // ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â 9. FOOTER ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â
     const footerY = doc.page.height - 40;
     doc.rect(margin, footerY - 10, contentWidth, 2).fill(COLORS.emerald600);
     doc.font("Helvetica").fontSize(9).fillColor(COLORS.slate400)
