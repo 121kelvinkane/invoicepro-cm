@@ -12,6 +12,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 // POST /api/v1/auth/register
 router.post("/register", async (req, res) => {
   try {
+    console.log("📝 Register attempt:", { email: req.body.email, name: req.body.fullName });
     const { name, fullName, email, password } = req.body;
     const finalName = fullName || name || "User";
     
@@ -31,6 +32,7 @@ router.post("/register", async (req, res) => {
 // POST /api/v1/auth/login
 router.post("/login", async (req, res) => {
   try {
+    console.log("🔑 Login attempt for:", req.body.email);
     const { email, password } = req.body;
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) return res.status(400).json({ error: "Invalid credentials" });
@@ -123,6 +125,7 @@ router.post("/reset-password", async (req, res) => {
 });
 
 export default router;
+
 
 
 
